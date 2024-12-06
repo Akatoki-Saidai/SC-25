@@ -48,14 +48,14 @@ try:
                     # print(f"cascade: {cascado_x1} {cascado_y1} {cascado_width} {cascado_height}")
                     
                     # 対象カラーコーンの場所を記述
-                    new_line = f" {cascado_x1} {cascado_y1} {cascado_width} {cascado_height}"
+                    new_line = f" {int(cascado_x1)} {int(cascado_y1)} {int(cascado_width)} {int(cascado_height)}"
                     outfile.write(new_line)
 
                 outfile.write('\n')
             else:
                 print(f"data parts is not correct. data parts is 5: {len(parts)}")
 
-        print(f"converting finished。result saved {output_file}.")
+        print(f"converting finished. result saved {output_file}.")
 
 except Exception as e:
     print(f"failed convert: {e}")
