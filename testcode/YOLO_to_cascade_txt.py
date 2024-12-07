@@ -15,7 +15,7 @@ try:
 
         for line in file_list:
             # 各データを分割
-            # YOLO_allset.txtの形式は"ファイルの名前" "クラス番号" "x1の少数位置" "x2の少数位置" "y1の少数位置" "y2の少数位置" "2つめのクラス番号"～ "画像の横幅" "画像の縦幅"
+            # YOLO_allset.txtの形式は"ファイルの名前" "クラス番号" "xの中心位置" "yの中心位置" "xの幅" "yの幅" "2つめのクラス番号"～ "画像の横幅" "画像の縦幅"
             parts = line.strip().split()
             if len(parts) >= 8:
                 class_num = (len(parts) // 5) - 1
@@ -23,30 +23,31 @@ try:
                 outfile.write(f'{filename} {class_num + 1}')
 
                 for num_now in range(class_num + 1):
-                    x1 = parts[2 + 5 * num_now]
-                    x2 = parts[3 + 5 * num_now]
-                    y1 = parts[4 + 5 * num_now]
-                    y2 = parts[5 + 5 * num_now]
+                    x_center = parts[2 + 5 * num_now]
+                    y_center = parts[3 + 5 * num_now]
+                    x_width = parts[4 + 5 * num_now]
+                    y_height = parts[5 + 5 * num_now]
                     # YOLOテキストファイルの末尾に横の幅，縦の幅を追記する(手動)
                     width = parts[6 + 5 * class_num]
                     height = parts[7 + 5 * class_num]
-                    x1, x2, y1, y2 = float(x1), float(x2), float(y1), float(y2)
+                    x_center, y_center, x_width, y_height = float(x_center), float(y_center), float(x_width), float(y_height)
                     width, height = int(width), int(height)
-                    
-                    if (x1 > x2):
-                        cascado_x1 = int(x2 * width)
-                    else:
-                        cascado_x1 = int(x1 * width)
-                    if (y1 > y2):
-                        cascado_y1 = int(y2 * height)
-                    else:
-                        cascado_y1 = int(y1 * height)
 
-                    cascado_width = int(abs((x2 - x1) * width))
-                    cascado_height = int(abs((y2 - y1) * height))
+
+                    cascado_width = abs(x_width * width)
+                    cascado_height = abs(y_height * height)
+
+                    cascado_x1 = int((x_center * width) - (cascado_width / 2))
+                    cascado_y1 = int((y_center * height) - (cascado_height / 2))
+
+                    if ((cascado_x1 <= 0) or (cascado_y1 <= 0)):
+                        print(f"warning: x1 or y1 less than 0: {line}\nx1: {cascado_x1}({x_center} - ({cascado_width} / 2)), y1: {cascado_y1}({y_center} - ({cascado_height} / 2))")
+
+                    cascado_width = int(cascado_width)
+                    cascado_height = int(cascado_height)
 
                     if ((cascado_height <= 0) or (cascado_width <= 0)):
-                        print(f"warning: width or height less than 0: {line}\nwidth: {cascado_width}(({x2} - {x1}) * {width}), height: {cascado_height}(({y2} - {y1}) * {height})")
+                        print(f"warning: width or height less than 0: {line}\nwidth: {cascado_width}(({x_width} * {width}), height: {cascado_height}(({y_height} * {height})")
 
                     # print(f"cascade: {cascado_x1} {cascado_y1} {cascado_width} {cascado_height}")
                     
