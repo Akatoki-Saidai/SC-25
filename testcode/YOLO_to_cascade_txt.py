@@ -54,10 +54,13 @@ try:
                     # 対象カラーコーンの場所を記述
                     new_line = f" {cascado_x1} {cascado_y1} {cascado_width} {cascado_height}"
                     outfile.write(new_line)
-
-                outfile.write('\n')
+                
+                # 最後の要素では改行しない
+                if line < len(file_list) - 1:
+                    outfile.write('\n')
             else:
                 print(f"data parts is not correct. data parts is 5: {len(parts)} at {line}")
+
 
         print(f"converting finished. result saved {output_file}.")
 
