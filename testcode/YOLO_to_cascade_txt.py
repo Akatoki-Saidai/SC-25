@@ -34,26 +34,29 @@ try:
                     width, height = int(width), int(height)
                     
                     if (x1 > x2):
-                        cascado_x1 = x2 * width
+                        cascado_x1 = int(x2 * width)
                     else:
-                        cascado_x1 = x1 * width
+                        cascado_x1 = int(x1 * width)
                     if (y1 > y2):
-                        cascado_y1 = y2 * height
+                        cascado_y1 = int(y2 * height)
                     else:
-                        cascado_y1 = y1 * height
+                        cascado_y1 = int(y1 * height)
 
-                    cascado_width = abs((x2 - x1) * width)
-                    cascado_height = abs((y2 - y1) * height)
+                    cascado_width = int(abs((x2 - x1) * width))
+                    cascado_height = int(abs((y2 - y1) * height))
+
+                    if ((cascado_height <= 0) or (cascado_width <= 0)):
+                        print(f"warning: width or height less than 0: {line}\nwidth: {cascado_width}(({x2} - {x1}) * {width}), height: {cascado_height}(({y2} - {y1}) * {height})")
 
                     # print(f"cascade: {cascado_x1} {cascado_y1} {cascado_width} {cascado_height}")
                     
                     # 対象カラーコーンの場所を記述
-                    new_line = f" {int(cascado_x1)} {int(cascado_y1)} {int(cascado_width)} {int(cascado_height)}"
+                    new_line = f" {cascado_x1} {cascado_y1} {cascado_width} {cascado_height}"
                     outfile.write(new_line)
 
                 outfile.write('\n')
             else:
-                print(f"data parts is not correct. data parts is 5: {len(parts)}")
+                print(f"data parts is not correct. data parts is 5: {len(parts)} at {line}")
 
         print(f"converting finished. result saved {output_file}.")
 
