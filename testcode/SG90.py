@@ -24,7 +24,7 @@ class SG90:
         ini_angle: 初期設定角度
         pi: gpio制御
     """
-    def __init__(self, pin=17, min_angle=-90, max_angle=90, ini_angle=0,freq=50) -> None:
+    def __init__(self, pin=18, min_angle=-90, max_angle=90, ini_angle=0,freq=50) -> None:
         """
         サーボモータを制御するクラス
         """
@@ -88,11 +88,10 @@ if __name__ == "__main__":
     """
     
     #これサンプルコードだから0~180のangle採用してる。書き換える必要あり。
-    sg90 = SG90( pin=17, min_angle=-70, max_angle=70, ini_angle=0,freq=50)
+    sg90 = SG90( pin=18, min_angle=-70, max_angle=70, ini_angle=0,freq=50)
 
     # サーボ動作開始
     sg90.start()
-
 
     # サンプル動作 
     print(sg90.angle)
