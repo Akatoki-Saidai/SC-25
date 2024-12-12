@@ -134,10 +134,11 @@ get_calib_param()
 
 
 if __name__ == '__main__':
-	try:
-		readData()
-	except Exception as e:
-		print(f"Unexpected error occcured: {e}")
+	while True:
+		try:
+			readData()
+		except Exception as e:
+			print(f"Unexpected error occcured: {e}")
 
 
 
