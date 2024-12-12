@@ -67,7 +67,7 @@ def readData():
 		data.append(bus.read_byte_data(i2c_address,i))
 	pres_raw = (data[0] << 12) | (data[1] << 4) | (data[2] >> 4)
 	temp_raw = (data[3] << 12) | (data[4] << 4) | (data[5] >> 4)
-	hum_raw  = (data[6] << 8)  |  data[7]
+	# hum_raw  = (data[6] << 8)  |  data[7]
 	
 	
 	temperature = compensate_T(temp_raw)
@@ -114,7 +114,7 @@ def compensate_T(adc_T):
 def setup():
 	osrs_t = 1			#Temperature oversampling x 1
 	osrs_p = 1			#Pressure oversampling x 1
-	osrs_h = 1			#Humidity oversampling x 1
+	# osrs_h = 1			#Humidity oversampling x 1
 	mode   = 3			#Normal mode
 	t_sb   = 5			#Tstandby 1000ms
 	filter = 0			#Filter off
@@ -122,9 +122,9 @@ def setup():
 
 	ctrl_meas_reg = (osrs_t << 5) | (osrs_p << 2) | mode
 	config_reg    = (t_sb << 5) | (filter << 2) | spi3w_en
-	ctrl_hum_reg  = osrs_h
+	# ctrl_hum_reg  = osrs_h
 
-	writeReg(0xF2,ctrl_hum_reg)
+	# writeReg(0xF2,ctrl_hum_reg)
 	writeReg(0xF4,ctrl_meas_reg)
 	writeReg(0xF5,config_reg)
 
