@@ -74,7 +74,7 @@ def readData():
 	pressure = compensate_P(pres_raw)
 	
 	print ("pressure : {:7.2f} hPa".format(pressure/100))
-	print ("temp : {:6.2f} ℃".format(temperature/100))
+	print ("temp : {:6.2f} ℃".format(temperature))
 
 def compensate_P(adc_P):
 	global  t_fine
@@ -134,10 +134,11 @@ get_calib_param()
 
 
 if __name__ == '__main__':
-	try:
-		readData()
-	except Exception as e:
-		print(f"Unexpected error occcured: {e}")
+	while True:
+		try:
+			readData()
+		except Exception as e:
+			print(f"Unexpected error occcured: {e}")
 
 
 
