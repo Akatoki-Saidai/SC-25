@@ -74,7 +74,7 @@ def readData():
 	pressure = compensate_P(pres_raw)
 	
 	print ("pressure : {:7.2f} hPa".format(pressure/100))
-	print ("temp : {:6.2f} ℃".format(temperature/100))
+	print ("temp : {:6.2f} ℃".format(temperature))
 
 def compensate_P(adc_P):
 	global  t_fine
