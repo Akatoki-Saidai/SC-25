@@ -15,7 +15,7 @@ class Camera:
         # YOLOv10nモデルをロード
         model = YOLO(pt_path)
         # 推論
-        yolo_results = model.predict(frame, save = False, show = True)
+        yolo_results = model.predict(frame, save = False, show = False)
         print(type(yolo_results))
         print(yolo_results)
 
@@ -169,6 +169,7 @@ if __name__ == '__main__':
 
         while True:
             frame = picam2.capture_array()
+            frame = cv2.rotate(frame, cv2.ROTATE_180)
             
             try:
                 # YOLO
