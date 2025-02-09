@@ -60,7 +60,7 @@ class Camera:
                     ymax = Bounding_box.ymax[i]
                 '''
             
-            center_x = (xmax - xmin) / 2
+            center_x = int(xmin + (xmax - xmin) / 2)
             yolo_xylist = [xmin, ymin, xmax, ymax, confidence]
 
         return yolo_xylist, center_x
@@ -143,7 +143,7 @@ class Camera:
                 cv2.putText(frame, str(yolo_xylist[4]), (int(yolo_xylist[0]), int(yolo_xylist[1] - 10)), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 0, 0))
 
                 # 面積表示
-                cv2.putText(frame, str(red_area), (int(yolo_xylist[0]), int(yolo_xylist[3] - 5)), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255))
+                cv2.putText(frame, str(red_area), (int(yolo_xylist[0]), int(yolo_xylist[3] - 5)), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255))
 
                 # red_result = cv2.drawContours(mask, [biggest_contour], -1, (0, 255, 0), 2)
             
