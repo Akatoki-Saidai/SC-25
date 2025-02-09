@@ -7,7 +7,7 @@ import numpy as np
 
 
 # 同じディレクトリに重みを置く
-pt_path = "./SC-25_yolomodel_v2.pt"
+pt_path = "./SC-25_yolo_ver2.pt"
 
 class Camera:
     def yolo_detect(self, frame):
