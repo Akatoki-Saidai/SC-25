@@ -13,7 +13,7 @@ class Camera:
     def yolo_detect(self, frame):
         
         # YOLOv10nモデルをロード
-        model = YOLO("yolov10n.pt")
+        model = YOLO(pt_path)
         # 推論
         yolo_results = model(frame, save = True, show = True)
 
@@ -145,7 +145,7 @@ if __name__ == '__main__':
             # 判断
             frame, camera_order = cam.judge_cone(frame, yolo_xylist, yolo_center_x, red_area)
             
-            
+
             # 結果表示
             cv2.imshow('kekka', frame)
             if cv2.waitKey(25) & 0xFF == ord('q'):
