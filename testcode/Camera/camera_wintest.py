@@ -11,6 +11,8 @@ pt_path = "./SC-25_yolo_ver2.pt"
 
 class Camera:
     def yolo_detect(self, frame):
+        yolo_xylist = 0
+        center_x = 0
         
         # YOLOv10nモデルをロード
         model = YOLO(pt_path)
