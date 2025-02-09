@@ -139,11 +139,11 @@ class Camera:
             
             if yolo_xylist != 0:
                 # Bounding Box描画
-                cv2.rectangle(frame, (yolo_xylist[0], yolo_xylist[1]), (yolo_xylist[2], yolo_xylist[3]), (0, 0, 255), 2)
-                cv2.putText(frame, str(yolo_xylist[4]), (yolo_xylist[0], yolo_xylist[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255))
+                cv2.rectangle(frame, (int(yolo_xylist[0]), int(yolo_xylist[1])), (int(yolo_xylist[2]), int(yolo_xylist[3])), (255, 0, 0), 2)
+                cv2.putText(frame, str(yolo_xylist[4]), (int(yolo_xylist[0]), int(yolo_xylist[1] - 10)), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 0, 0))
 
                 # 面積表示
-                cv2.putText(frame, str(red_area), (10, 40, cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255)))
+                cv2.putText(frame, str(red_area), (int(yolo_xylist[0]), int(yolo_xylist[3] - 5)), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255))
 
                 # red_result = cv2.drawContours(mask, [biggest_contour], -1, (0, 255, 0), 2)
             
