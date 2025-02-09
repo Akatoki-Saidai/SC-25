@@ -55,9 +55,8 @@ class Camera:
 
         return mask1 + mask2
     
-    def analyze_red(self, frame, mask):
+    def analyze_red(self, mask):
             
-        camera_order = 0
         # 画像の中にある領域を検出する
         contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -139,7 +138,7 @@ if __name__ == '__main__':
             yolo_xylist, yolo_center_x = cam.yolo_detect(frame)
             # 赤色検出
             mask = cam.red_detect(frame)
-            red_area, _red_x, _red_y = cam.analyze_red(frame, mask)
+            red_area, _red_x, _red_y = cam.analyze_red(mask)
             print("red area: ", red_area)
             
             # 判断
