@@ -171,6 +171,11 @@ if __name__ == '__main__':
             frame = picam2.capture_array()
             frame = cv2.rotate(frame, cv2.ROTATE_180)
             
+            # RGBに変換
+            if frame.shape[2] == 4:
+                frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)  # BGRA → BGR（RGBと等価）
+
+            
             try:
                 # YOLO
                 yolo_xylist, yolo_center_x = cam.yolo_detect(frame)
