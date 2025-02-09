@@ -15,26 +15,53 @@ class Camera:
         # YOLOv10nモデルをロード
         model = YOLO(pt_path)
         # 推論
-        yolo_results = model(frame, save = True, show = True)
+        yolo_results = model.predict(frame, save = False, show = True)
+        print(type(yolo_results))
+        print(yolo_results)
 
         confidence_best = 0
         # 最も信頼性の高いBounding Boxを取得
-        Bounding_box = yolo_results.pandas().xyxy[0]
-        # print(Bounding_box)
-        for i in range(len(Bounding_box)):
-            confidence = Bounding_box.confidence[i]
-            # name = Bounding_box.name[i]
-            if confidence < confidence_best:
-                continue
-            else:
-                confidence_best = confidence
-            xmin = Bounding_box.xmin[i]
-            ymin = Bounding_box.ymin[i]
-            xmax = Bounding_box.xmax[i]
-            ymax = Bounding_box.ymax[i]
-        
-        center_x = (xmax - xmin) / 2
-        yolo_xylist = [xmin, ymin, xmax, ymax, confidence]
+        yolo_result = yolo_results[0]
+        print("yolo_result: ",yolo_result)
+        # バウンディングボックス情報を NumPy 配列で取得
+        Bounding_box = yolo_result.boxes.xyxy.numpy()
+        print("Bounding_box: ", Bounding_box)
+        confidences = yolo_result.boxes.conf.numpy()
+        print("confidences: ", confidences)
+
+        if len(Bounding_box) == 0:
+            print("No objects detected.")
+            yolo_xylist = 0
+            center_x = 0
+
+        else:
+            for i in range(len(Bounding_box)):
+                confidence = confidences[i]
+                if confidence < confidence_best:
+                    continue
+                else:
+                    confidence_best = confidence
+                xmin, ymin, xmax, ymax = Bounding_box[i]
+                
+
+                '''
+                Bounding_box = yolo_results[0].boxes.pandas()
+                # print(Bounding_box)
+                for i in range(len(Bounding_box)):
+                    confidence = Bounding_box.confidence[i]
+                    # name = Bounding_box.name[i]
+                    if confidence < confidence_best:
+                        continue
+                    else:
+                        confidence_best = confidence
+                    xmin = Bounding_box.xmin[i]
+                    ymin = Bounding_box.ymin[i]
+                    xmax = Bounding_box.xmax[i]
+                    ymax = Bounding_box.ymax[i]
+                '''
+            
+            center_x = (xmax - xmin) / 2
+            yolo_xylist = [xmin, ymin, xmax, ymax, confidence]
 
         return yolo_xylist, center_x
 
@@ -56,12 +83,15 @@ class Camera:
         return mask1 + mask2
     
     def analyze_red(self, mask):
-            
+        
+        area = 0
+        center_x = 0
+        center_y = 0
+        
         # 画像の中にある領域を検出する
         contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
         if 0 < len(contours):
-                        
             # 輪郭群の中の最大の輪郭を取得する-
             biggest_contour = max(contours, key=cv2.contourArea)
 
@@ -77,7 +107,7 @@ class Camera:
 
             # cv2.putText(frame, str(center_x), (center_x, center_y - 20), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 1)
 
-            return area, center_x, center_y
+        return area, center_x, center_y
 
 
     def judge_cone(self, frame, yolo_xylist, yolo_center_x, red_area):
@@ -88,7 +118,7 @@ class Camera:
                 print("Close enough to red")
                 camera_order = 4
 
-            elif red_area > 10:
+            elif red_area > 5:
                 if frame_center_x -  50 <= yolo_center_x <= frame_center_x + 50:
                     print("The red object is in the center")#直進
                     camera_order = 1
@@ -101,21 +131,27 @@ class Camera:
 
                 else:
                     print("The red object is too minimum")
+                    camera_order = 0
             
             else:
                 print("The red object is None")
+                camera_order = 0
             
-            # Bounding Box描画
-            cv2.rectangle(frame, (yolo_xylist[0], yolo_xylist[1]), (yolo_xylist[2], yolo_xylist[3]), (0, 0, 255), 2)
-            cv2.putText(frame, str(yolo_xylist[4]), (yolo_xylist[0], yolo_xylist[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255))
+            if yolo_xylist != 0:
+                # Bounding Box描画
+                cv2.rectangle(frame, (yolo_xylist[0], yolo_xylist[1]), (yolo_xylist[2], yolo_xylist[3]), (0, 0, 255), 2)
+                cv2.putText(frame, str(yolo_xylist[4]), (yolo_xylist[0], yolo_xylist[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255))
 
-            # 面積表示
-            cv2.putText(frame, str(red_area), (10, 40, cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255)))
+                # 面積表示
+                cv2.putText(frame, str(red_area), (10, 40, cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255)))
 
-            # red_result = cv2.drawContours(mask, [biggest_contour], -1, (0, 255, 0), 2)
+                # red_result = cv2.drawContours(mask, [biggest_contour], -1, (0, 255, 0), 2)
             
+            else:
+                camera_order = 0
 
             return frame, camera_order
+    
 
 if __name__ == '__main__':
     
@@ -133,17 +169,28 @@ if __name__ == '__main__':
 
         while True:
             frame = picam2.capture_array()
+            
+            try:
+                # YOLO
+                yolo_xylist, yolo_center_x = cam.yolo_detect(frame)
+                print(f"yolo_xylist: {yolo_xylist}, yolo_center_x: {yolo_center_x}")
+            except Exception as e:
+                print(f"An error occured in yolo_detect : {e}")
 
-            # YOLO
-            yolo_xylist, yolo_center_x = cam.yolo_detect(frame)
-            # 赤色検出
-            mask = cam.red_detect(frame)
-            red_area, _red_x, _red_y = cam.analyze_red(mask)
-            print("red area: ", red_area)
+            try:
+                # 赤色検出
+                mask = cam.red_detect(frame)
+                red_area, _red_x, _red_y = cam.analyze_red(mask)
+                print(f"red area: {red_area}")
+            except Exception as e:
+                print(f"An error occured in analize_red : {e}")
             
             # 判断
-            frame, camera_order = cam.judge_cone(frame, yolo_xylist, yolo_center_x, red_area)
-            
+            try:
+                frame, camera_order = cam.judge_cone(frame, yolo_xylist, yolo_center_x, red_area)
+            except Exception as e:
+                print(f"An error occured in judgement : {e}")
+
 
             # 結果表示
             cv2.imshow('kekka', frame)
