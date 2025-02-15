@@ -21,8 +21,15 @@ def main():
     # LEFT_MOTORピン
     pi.set_PWM_frequency(RIGHT_MOTOR_2, FREQUENCY)
     pi.set_PWM_range(RIGHT_MOTOR_2, MOTOR_RANGE)
+
+    # 停止
+    pi.set_PWM_dutycycle(RIGHT_MOTOR_1, 0)
+    pi.set_PWM_dutycycle(RIGHT_MOTOR_2, 0)
+    print("motor stop")
         
     while True:
+        input()
+
         # 正転
         pi.set_PWM_dutycycle(RIGHT_MOTOR_1, int(duty * MOTOR_RANGE))
         pi.set_PWM_dutycycle(RIGHT_MOTOR_2, 0)
