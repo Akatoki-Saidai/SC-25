@@ -6,8 +6,8 @@ import time
 # channel1: 18, 19
 
 def main():
-    RIGHT_MOTOR_1 = 22
-    RIGHT_MOTOR_2 = 23
+    RIGHT_MOTOR_1 = 20
+    RIGHT_MOTOR_2 = 21
     MOTOR_RANGE = 100  # 0～255
     FREQUENCY = 4000  # pigpioのデフォルトサンプリングレートは5なので8000,4000,2000,1600,1000,800,500,400,320のいずれか
     duty = 0.5  # duty比
