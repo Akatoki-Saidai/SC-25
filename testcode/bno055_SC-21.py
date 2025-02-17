@@ -202,8 +202,8 @@ class BNO055:
 	MAG_RADIUS_MSB_ADDR 				= 0X6A
 	
 	# REGISTER DEFINITION END
-	
-	
+
+
 	##########
 	# コンストラクタ
 	##########
@@ -212,7 +212,7 @@ class BNO055:
 		self._sensorId = sensorId
 		self._address = address
 		self._mode = BNO055.OPERATION_MODE_NDOF
-	
+
 	##########
 	# スタティックメソッド
 	##########
@@ -375,12 +375,15 @@ def main():
 	time.sleep(1)
 	bno.setExternalCrystalUse(True)
 	while True:
+		try:
+			print("Gyro",bno.getVector(BNO055.VECTOR_GYROSCOPE))
+			print("Mag",bno.getVector(BNO055.VECTOR_MAGNETOMETER))
+			print("Accel",bno.getVector(BNO055.VECTOR_LINEARACCEL))
+			print("Accel_all",bno.getVector(BNO055.VECTOR_ACCELEROMETER))
+			time.sleep(0.1)
+		except Exception as e:
+			print(f"Error: {e}")
 
-		print("Gyro",bno.getVector(BNO055.VECTOR_GYROSCOPE))
-		print("Mag",bno.getVector(BNO055.VECTOR_MAGNETOMETER))
-		print("Accel",bno.getVector(BNO055.VECTOR_LINEARACCEL))
-		print("Accel_all",bno.getVector(BNO055.VECTOR_ACCELEROMETER))
-		time.sleep(0.1)
 	return
 
 
