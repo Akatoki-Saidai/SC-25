@@ -11,7 +11,7 @@ import struct
 from statistics import median
 
 # 測定値の出力用
-import csv_print as csv
+# import csv_print as csv
 
 
 
@@ -311,35 +311,35 @@ class BNO055:
 				raise(ValueError(f'BNO measurement is abnormal. mag: {result_vector}'))
 			# if not(-80 < result_vector[0] < 80 and -80 < result_vector[1] < 80 and -80 < result_vector[2] < 80):
 				# raise(ValueError(f'BNO measurement is abnormal. mag: {result_vector}'))
-			csv.print('mag', result_vector)
+			# csv.print('mag', result_vector)
 		elif vectorType == BNO055.VECTOR_GYROSCOPE:
 			scalingFactor = 900.0
 			result_vector = [i/scalingFactor for i in xyz_m]
 			if sum(abs(n) for n in result_vector) > 45:
 				raise(ValueError(f'BNO measurement is abnormal. gyro: {result_vector}'))
-			csv.print('gyro', result_vector)
+			# csv.print('gyro', result_vector)
 		elif vectorType == BNO055.VECTOR_EULER:
 			scalingFactor = 16.0
 			result_vector = [i/scalingFactor for i in xyz_m]
-			csv.print('euler', result_vector)
+			# csv.print('euler', result_vector)
 		elif vectorType == BNO055.VECTOR_GRAVITY:
 			scalingFactor = 100.0
 			result_vector = [i/scalingFactor for i in xyz_m]
 			if sum(abs(n) for n in result_vector) > 15:
 				raise(ValueError(f'BNO measurement is abnormal. gyro: {result_vector}'))
-			csv.print('grav', result_vector)
+			# csv.print('grav', result_vector)
 		elif vectorType == BNO055.VECTOR_LINEARACCEL:
 			scalingFactor = 100.0
 			result_vector = [i/scalingFactor for i in xyz_m]
 			if sum(abs(n) for n in result_vector) > 25:
 				raise(ValueError(f'BNO measurement is abnormal. gyro: {result_vector}'))
-			csv.print('accel_line', result_vector)
+			# csv.print('accel_line', result_vector)
 		elif vectorType == BNO055.VECTOR_ACCELEROMETER:
 			scalingFactor = 100.0
 			result_vector = [i/scalingFactor for i in xyz_m]
 			if sum(abs(n) for n in result_vector) > 50:
 				raise(ValueError(f'BNO measurement is abnormal. gyro: {result_vector}'))
-			csv.print('accel_all', result_vector)
+			# csv.print('accel_all', result_vector)
 		else:
 			scalingFactor = 1.0
 		# time.sleep(0.1)
