@@ -214,9 +214,9 @@ class BNO055(object):
 
     def __init__(self, rst=None, address=BNO055_ADDRESS_A, i2c_bus=1, serial_port=None, serial_timeout_sec=5):
         # Initialize pigpio
-        # self.pi = pigpio.pi()
-        # if not self.pi.connected:
-        #     raise RuntimeError("Failed to connect to pigpio daemon")
+        self.pi = pigpio.pi()
+        if not self.pi.connected:
+            raise RuntimeError("Failed to connect to pigpio daemon")
             
         # Reset pin setup if 
         # リセットピン繋がってない
