@@ -521,7 +521,7 @@ class BNO055(object):
             sys_trigger = self._read_byte(BNO055_SYS_TRIGGER_ADDR)
             self._write_byte(BNO055_SYS_TRIGGER_ADDR, sys_trigger | 0x1)
             # Wait for self test to finish.
-            time.sleep(1.0)
+            time.sleep(0.1)
             # Read test result.
             self_test = self._read_byte(BNO055_SELFTEST_RESULT_ADDR)
             # Go back to operation mode.
@@ -802,7 +802,7 @@ def main():
             print(f"gravity: \ngravity_x:{gravity_x:.4f}  gravity_y:{gravity_y:.4f}  gravity_z:{gravity_z:.4f}")
             print()
 
-            time.sleep(1)
+            # time.sleep(1)
 
     except Exception as e:
         print(f"An error occured in BNO055: {e}")
