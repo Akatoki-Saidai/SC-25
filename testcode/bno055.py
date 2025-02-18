@@ -25,6 +25,7 @@ import logging
 import struct
 import time
 import pigpio
+import serial
 
 
 # I2C addresses

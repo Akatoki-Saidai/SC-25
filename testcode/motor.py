@@ -5,13 +5,13 @@ import time
 # channel0: 12, 13
 # channel1: 18, 19
 
-class Motor:
-    def __init__(self):
+class Motor(object):
+    def __init__(self, right_pin1=20, right_pin2=21, left_pin1=5, left_pin2=7):
         # ピン番号要確認
-        self.RIGHT_MOTOR_1 = 20
-        self.RIGHT_MOTOR_2 = 21
-        self.LEFT_MOTOR_1 = 22
-        self.LEFT_MOTOR_2 = 23
+        self.RIGHT_MOTOR_1 = right_pin1
+        self.RIGHT_MOTOR_2 = right_pin2
+        self.LEFT_MOTOR_1 = left_pin1
+        self.LEFT_MOTOR_2 = left_pin2
 
         self.MOTOR_RANGE = 100  # 0～255
         FREQUENCY = 4000  # pigpioのデフォルトサンプリングレートは5→8000,4000,2000,1600,1000,800,500,400,320のいずれか
