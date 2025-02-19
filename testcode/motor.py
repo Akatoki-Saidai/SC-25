@@ -180,7 +180,7 @@ class Motor(object):
 
 
 def main():
-    motor = Motor()
+    motor = Motor(right_pin1=20, right_pin2=21, left_pin1=5, left_pin2=7)
     print("motor initialized\nstart?")
     input()
 
