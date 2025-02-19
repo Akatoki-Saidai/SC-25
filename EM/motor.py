@@ -1,5 +1,6 @@
 import pigpio
 import time
+from log import logger
 
 class MotorChannel(object):
     # 1つのモーターの制御クラス
@@ -47,7 +48,7 @@ class MotorChannel(object):
         # target_inverse, target_reverse は [0,1]の値。両方同時に0より大きい場合はエラー
         
         if target_inverse > 0 and target_reverse > 0:
-            print(f"pin1:{self.pin_inverse}, pin2:{self.pin_reverse}: Both pin over 0 voltage")
+            logger.error(f"pin1:{self.pin_inverse}, pin2:{self.pin_reverse}: Both pin over 0 voltage")
             raise ValueError(f"pin1:{self.pin_inverse}, pin2:{self.pin_reverse}: Both pin over 0 voltage")
         
         if target_inverse > 0:
@@ -89,7 +90,7 @@ class Motor(object):
     def __init__(self, right_pin1=20, right_pin2=21, left_pin1=5, left_pin2=7):
         self.pi = pigpio.pi()
         if not self.pi.connected:
-            print("Failed to connect to pigpio daemon in motor")
+            logger.error("Failed to connect to pigpio daemon in motor")
             raise RuntimeError("Failed to connect to pigpio daemon in motor")
         
         self.right_motor = MotorChannel(self.pi, right_pin1, right_pin2)

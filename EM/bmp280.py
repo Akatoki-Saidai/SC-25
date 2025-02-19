@@ -5,6 +5,7 @@
 
 from smbus2 import SMBus
 import time
+from log import logger
 
 bus_number  = 1
 i2c_address = 0x76
@@ -73,8 +74,8 @@ class BMP280:
 		temperature = self.compensate_T(temp_raw)
 		pressure = self.compensate_P(pres_raw)
 		
-		print ("pressure : {:7.2f} hPa".format(pressure/100))
-		print ("temp : {:6.2f} ℃".format(temperature))
+		logger.info("pressure : {:7.2f} hPa".format(pressure/100))
+		logger.info("temp : {:6.2f} ℃".format(temperature))
 
 		return temperature, pressure
 
@@ -100,7 +101,7 @@ class BMP280:
 		v2 = ((pressure / 4.0) * digP[7]) / 8192.0
 		pressure = pressure + ((v1 + v2 + digP[6]) / 16.0)  
 
-		# print ("pressure : {:7.2f} hPa".format(pressure/100))
+		# logger.info("pressure : {:7.2f} hPa".format(pressure/100))
 		return pressure
 
 	def compensate_T(self, adc_T):
@@ -110,7 +111,7 @@ class BMP280:
 		t_fine = v1 + v2
 		temperature = t_fine / 5120.0
 
-		# print ("temp : {:6.2f} ℃".format(temperature/100))
+		# logger.info("temp : {:6.2f} ℃".format(temperature/100))
 		return temperature
 
 	def setup(self):

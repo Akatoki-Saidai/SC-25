@@ -26,7 +26,7 @@ if __name__ == "__main__":
     try:
         1/0
     except Exception as e:
-        logger.exception(f"なんかエラーが置きました：{e}")  # 👈Exception内はこれを使って
+        logger.exception(f"なんかエラーが起きました")  # 👈except内はこれを使って
 
 # from log import logger  でloggerを読み込んで
 # logger.info("aiu")      のように記録してください

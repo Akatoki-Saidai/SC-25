@@ -23,7 +23,7 @@ except ImportError:
 
 
 # 測定値の出力用
-# import csv_print as csv
+from log import logger
 
 
 class MicropyGPS(object):
@@ -116,8 +116,7 @@ class MicropyGPS(object):
             if decimal_degrees == 0:
                 raise(ValueError(f'latitude is abnormal: {decimal_degrees}'))
             
-            print('lat', decimal_degrees)  # 測地値を記録
-            # csv.print('lat', decimal_degrees)  # 測地値を記録
+            logger.info('lat', decimal_degrees)  # 測地値を記録
             return [decimal_degrees, self._latitude[2]]
         elif self.coord_format == 'dms':
             minute_parts = modf(self._latitude[1])
@@ -136,8 +135,7 @@ class MicropyGPS(object):
             if decimal_degrees == 0:
                 raise(ValueError(f'longitude is abnormal: {decimal_degrees}'))
             
-            print('lon', decimal_degrees)  # 測地値を記録
-            # csv.print('lon', decimal_degrees)  # 測地値を記録
+            logger.info('lon', decimal_degrees)  # 測地値を記録
             return [decimal_degrees, self._longitude[2]]
         elif self.coord_format == 'dms':
             minute_parts = modf(self._longitude[1])
@@ -830,8 +828,7 @@ class MicropyGPS(object):
             else:  # Default date format
                 date_string = month + '/' + day + '/' + year
 
-        print('gnss_time', f'{century}{year}-{month}-{day}T{self.timestamp[0]}:{self.timestamp[1]}:{self.timestamp[2]}Z')  # 測定値を記録
-        # csv.print('gnss_time', f'{century}{year}-{month}-{day}T{self.timestamp[0]}:{self.timestamp[1]}:{self.timestamp[2]}Z')  # 測定値を記録
+        logger.log('gnss_time', f'{century}{year}-{month}-{day}T{self.timestamp[0]}:{self.timestamp[1]}:{self.timestamp[2]}Z')  # 測定値を記録
         return date_string
 
     # All the currently supported NMEA sentences

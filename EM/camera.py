@@ -4,6 +4,7 @@ import time
 from ultralytics import YOLO
 import cv2
 import numpy as np
+from log import logger
 
 
 # 同じディレクトリに重みを置く
@@ -18,21 +19,21 @@ class Camera:
         model = YOLO(pt_path)
         # 推論
         yolo_results = model.predict(frame, save = False, show = False)
-        print(type(yolo_results))
-        print(yolo_results)
+        logger.debug(type(yolo_results))
+        logger.debug(yolo_results)
 
         confidence_best = 0
         # 最も信頼性の高いBounding Boxを取得
         yolo_result = yolo_results[0]
-        print("yolo_result: ",yolo_result)
+        logger.debug("yolo_result: ",yolo_result)
         # バウンディングボックス情報を NumPy 配列で取得
         Bounding_box = yolo_result.boxes.xyxy.numpy()
-        print("Bounding_box: ", Bounding_box)
+        logger.debug("Bounding_box: ", Bounding_box)
         confidences = yolo_result.boxes.conf.numpy()
-        print("confidences: ", confidences)
+        logger.debug("confidences: ", confidences)
 
         if len(Bounding_box) == 0:
-            print("No objects detected.")
+            logger.debug("No objects detected.")
 
         else:
             for i in range(len(Bounding_box)):
@@ -46,7 +47,7 @@ class Camera:
 
                 '''
                 Bounding_box = yolo_results[0].boxes.pandas()
-                # print(Bounding_box)
+                # logger.debug(Bounding_box)
                 for i in range(len(Bounding_box)):
                     confidence = Bounding_box.confidence[i]
                     # name = Bounding_box.name[i]
@@ -115,26 +116,26 @@ class Camera:
 
             # 中心座標のx座標が画像の中心より大きいか小さいか判定
             if red_area > 7000:
-                print("Close enough to red")
+                logger.info("Close enough to red")
                 camera_order = 4
 
             elif red_area > 5:
                 if frame_center_x -  50 <= yolo_center_x <= frame_center_x + 50:
-                    print("The red object is in the center")#直進
+                    logger.info("The red object is in the center")#直進
                     camera_order = 1
                 elif yolo_center_x > frame_center_x + 50:
-                    print("The red object is in the right")#右へ
+                    logger.info("The red object is in the right")#右へ
                     camera_order = 2
                 elif yolo_center_x < frame_center_x - 50:
-                    print("The red object is in the left")#左へ
+                    logger.info("The red object is in the left")#左へ
                     camera_order = 3
 
                 else:
-                    print("The red object is too minimum")
+                    logger.info("The red object is too minimum")
                     camera_order = 0
             
             else:
-                print("The red object is None")
+                logger.info("The red object is None")
                 camera_order = 0
             
             if yolo_xylist != 0:

@@ -2,6 +2,7 @@
 
 import subprocess
 import time
+from log import logger
 
 
 class C():
@@ -12,14 +13,14 @@ proces_aplay = C()
 # .poll()は終了していなかったらNone，終了していたらそのステータスを返す．
 def audio_play(audio_path):
     global proces_aplay
-    # print('Music play')
+    # logger.log('Music play')
     if (proces_aplay.poll() != None):
         proces_aplay = subprocess.Popen(f"aplay --device=hw:1,0 {audio_path}", shell=True)
 
-        print("Play music")
+        logger.log("Play music")
 
     else:
-        print("already playing music now. canceled playing.")
+        logger.warning("already playing music now. canceled playing.")
 
 
 if __name__ == '__main__':

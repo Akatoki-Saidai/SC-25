@@ -1,6 +1,7 @@
 import time
 import serial
 from micropyGPS import MicropyGPS
+from log import logger
 
 def main():
     #print("1")

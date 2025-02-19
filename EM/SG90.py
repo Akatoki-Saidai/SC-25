@@ -1,5 +1,6 @@
 import time
 from machine import Pin, PWM
+from log import logger
 
 class SG90:
     """
@@ -31,7 +32,7 @@ class SG90:
         サーボモータを指定した角度に設定する
         """
         if target_angle < self.min_angle or target_angle > self.max_angle:
-            print(f"角度は{self.min_angle}から{self.max_angle}度の間で指定してください。")
+            logger.error(f"角度は{self.min_angle}から{self.max_angle}度の間で指定してください。")
             return
         # 角度[degree] → パルス幅[μs]に変換
         pulse_width = ((target_angle + self.max_angle) / (self.max_angle - self.min_angle)) * (2000 - 1000) + 1000
