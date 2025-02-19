@@ -13,15 +13,17 @@ def main():
     tm_last = 0
     while True:
         #print("3")
-        read_line = uart.readline()
+        sentence_all = uart.read(uart.in_waiting).decode('utf-8')
+        print("GPS data received")
+        sentence_list = sentence_all.split('\n')
         #print(len(sentence))
         #continue
-        if len(read_line) > 0:
+        for sentence in sentence_list[-11:-2]:
             #print("4")
-            for read_char in read_line:
-                if 10 <= read_char <= 126:
+            for x in sentence:
+                if 10 <= x <= 126:
                     #print("5")
-                    stat = my_gps.update(chr(read_char))
+                    stat = my_gps.update(chr(x))
                     #print("stat:",stat,"x:",x,"chr:",chr(x))
                     #print(chr(x))
                     if stat:
