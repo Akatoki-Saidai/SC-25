@@ -170,13 +170,6 @@ class Camera:
         if frame.shape[2] == 4:
             frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)  # BGRA → BGR（RGBと等価）
 
-        # 結果表示
-        if (show == True):
-            cv2.imshow('kekka', frame)
-            if cv2.waitKey(25) & 0xFF == ord('q'):
-                cv2.destroyAllWindows()
-                print('q interrupted direction by camera')
-
         try:
             # YOLO
             yolo_xylist, yolo_center_x = cam.yolo_detect(frame)
@@ -197,6 +190,13 @@ class Camera:
             frame, camera_order = cam.judge_cone(frame, yolo_xylist, yolo_center_x, red_area)
         except Exception as e:
             logger.exception("An error occured in judgement")
+
+        # 結果表示
+        if (show == True):
+            cv2.imshow('kekka', frame)
+            if cv2.waitKey(25) & 0xFF == ord('q'):
+                cv2.destroyAllWindows()
+                print('q interrupted direction by camera')
 
         return camera_order
     

@@ -1,3 +1,4 @@
+deactivate
 cd /home/omusubi/github/SC-25
 git pull
 cp ./ ../../SC-25 -r -f
