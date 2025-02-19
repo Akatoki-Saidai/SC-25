@@ -196,7 +196,7 @@ class Camera:
             cv2.imshow('kekka', frame)
             if cv2.waitKey(25) & 0xFF == ord('q'):
                 cv2.destroyAllWindows()
-                print('q interrupted direction by camera')
+                logger.log('q interrupted direction by camera')
 
         return camera_order
     
@@ -259,5 +259,5 @@ if __name__ == '__main__':
 
 
     except Exception as e:
-        print(f"An error occurred in init camera: {e}")
+        logger.exception(f"An error occurred in init camera: {e}")
         
