@@ -33,6 +33,12 @@ class Motor(object):
         self.pi.set_PWM_frequency(self.LEFT_MOTOR_2, FREQUENCY)
         self.pi.set_PWM_range(self.LEFT_MOTOR_2, self.MOTOR_RANGE)
 
+        # 初期化
+        self.pi.set_PWM_dutycycle(self.RIGHT_MOTOR_1, 0)
+        self.pi.set_PWM_dutycycle(self.RIGHT_MOTOR_2, 0)
+        self.pi.set_PWM_dutycycle(self.LEFT_MOTOR_1, 0)
+        self.pi.set_PWM_dutycycle(self.LEFT_MOTOR_2, 0)
+
 
     def Speedup(self, right_pin1_duty, right_pin2_duty, left_pin1_duty, left_pin2_duty):
         # Speedup(右の正転duty, 右の逆転duty, 左の正転duty, 左の逆転duty)
@@ -110,6 +116,7 @@ class Motor(object):
             right_inverse_duty = right_pin2_duty
             right_inverse_pin = self.RIGHT_MOTOR_2
         else:
+            right_inverse_duty = 0
             print("Right pin is already 0")
         right_inverse_duty_now = 0
 
@@ -122,6 +129,7 @@ class Motor(object):
             # left_inverse_duty_now = left_pin2_duty_now
             left_inverse_pin = self.LEFT_MOTOR_2
         else:
+            left_inverse_duty = 0
             print("Left pin is already 0")
         left_inverse_duty_now = 0
 
