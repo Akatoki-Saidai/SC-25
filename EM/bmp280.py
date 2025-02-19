@@ -133,6 +133,11 @@ class BMP280:
 		# 一応10回空測定
 		for i in range(10):
 			self.readData()
+	
+	def __init__(self):
+		# モジュール読み込み時に自動実行
+		self.setup()
+		self.get_calib_param()
 
 	def get_altitude(self, qnh=1013.25, manual_temperature=None):
         # qnh = pressure at sea level where the readings are being taken.
@@ -165,8 +170,6 @@ class BMP280:
 
 if __name__ == '__main__':
 	bmp = BMP280()
-	bmp.setup()
-	bmp.get_calib_param()
 	
 	while True:
 		try:
