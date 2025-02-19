@@ -18,6 +18,8 @@ class Motor(object):
         # duty = 0  # duty比
 
         self.pi = pigpio.pi()
+        if not self.pi.connected:
+            raise RuntimeError("Failed to connect to pigpio daemon in motor")
 
         # 設定
         # RIGHT_MOTORピン
@@ -93,6 +95,9 @@ class Motor(object):
                     left_inverse_duty_now -= delta_duty
                 else:
                     pass
+
+                time.sleep(0.1)
+
             self.pi.set_PWM_dutycycle(right_inverse_pin, 0)
             self.pi.set_PWM_dutycycle(left_inverse_pin, 0)
                     
@@ -131,6 +136,9 @@ class Motor(object):
                 left_inverse_duty_now += delta_duty
             else:
                 pass
+
+                time.sleep(0.1)
+                
         self.pi.set_PWM_dutycycle(right_inverse_pin, right_inverse_duty)
         self.pi.set_PWM_dutycycle(left_inverse_pin, left_inverse_duty)
 
