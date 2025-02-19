@@ -116,6 +116,7 @@ class Motor(object):
             right_inverse_duty = right_pin2_duty
             right_inverse_pin = self.RIGHT_MOTOR_2
         else:
+            right_inverse_duty = 0
             print("Right pin is already 0")
         right_inverse_duty_now = 0
 
@@ -128,6 +129,7 @@ class Motor(object):
             # left_inverse_duty_now = left_pin2_duty_now
             left_inverse_pin = self.LEFT_MOTOR_2
         else:
+            left_inverse_duty = 0
             print("Left pin is already 0")
         left_inverse_duty_now = 0
 
