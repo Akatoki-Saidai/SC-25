@@ -214,6 +214,7 @@ if __name__ == '__main__':
         cam = Camera()
 
         # picam2.start()
+        cam.start()
 
         while True:
             # frame = picam2.capture_array()
