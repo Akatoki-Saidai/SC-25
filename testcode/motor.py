@@ -1,224 +1,183 @@
 import pigpio
 import time
 
-# hardware PWMのchannel(同channelでは同じPWMが出力) 
-# channel0: 12, 13
-# channel1: 18, 19
+class MotorChannel(object):
+    """
+    1つのモーターの制御クラス
+    ※ forwardとreverseどちらか一方のピンにのみPWM出力を行う
+    """
+    def __init__(self, pi, pin1, pin2):
+        self.pi = pi
+        self.pin_inverse = pin1
+        self.pin_reverse = pin2
+        self.MOTOR_RANGE = 100  # 0～255の範囲で設定
+        self.FREQUENCY = 4000  # pigpioのデフォルトサンプリングレートは5→8000,4000,2000,1600,1000,800,500,400,320のいずれか
+        self.delta_duty = 0.1
+        self.delta_time = 0.05
 
-class Motor(object):
+        # PWM設定
+        self.pi.set_PWM_frequency(self.pin_inverse, self.FREQUENCY)
+        self.pi.set_PWM_range(self.pin_inverse, self.MOTOR_RANGE)
+
+        self.pi.set_PWM_frequency(self.pin_reverse, self.FREQUENCY)
+        self.pi.set_PWM_range(self.pin_reverse, self.MOTOR_RANGE)
+
+        # 初期状態は停止
+        self.current_duty = 0.0   # 0～1の割合
+        self.current_direction = 0  # 1: 正転, -1: 逆転, 0: 停止
+        self._apply_duty()
+
+    def _apply_duty(self):
+        # PWM出力を更新(片側)
+
+        if self.current_direction == 1:
+            # 正転：forwardに duty、reverseは0
+            self.pi.set_PWM_dutycycle(self.pin_inverse, int(self.current_duty * self.MOTOR_RANGE))
+            self.pi.set_PWM_dutycycle(self.pin_reverse, 0)
+        elif self.current_direction == -1:
+            # 逆転：reverseに duty、forwardは0
+            self.pi.set_PWM_dutycycle(self.pin_inverse, 0)
+            self.pi.set_PWM_dutycycle(self.pin_reverse, int(self.current_duty * self.MOTOR_RANGE))
+        else:
+            # 停止
+            self.pi.set_PWM_dutycycle(self.pin_inverse, 0)
+            self.pi.set_PWM_dutycycle(self.pin_reverse, 0)
+
+    def update(self, target_inverse, target_reverse):
+        # duty を漸進的に更新
+        # target_forward, target_reverse は [0,1]の値。両方同時に0より大きい場合はエラー
+        
+        if target_inverse > 0 and target_reverse > 0:
+            raise ValueError(f"pin1:{self.pin_inverse}, pin2:{self.pin_reverse}: Both pin over 0 voltage")
+        
+        if target_inverse > 0:
+            target_direction = 1
+            target_duty = target_inverse
+        elif target_reverse > 0:
+            target_direction = -1
+            target_duty = target_reverse
+        else:
+            target_direction = 0
+            target_duty = 0.0
+
+        # 入力と現行の+-が違ったら現行側を0に直す
+        if self.current_direction != target_direction:
+            while self.current_duty > 0:
+                self.current_duty = max(self.current_duty - self.delta_duty, 0)
+                self._apply_duty()
+                time.sleep(self.delta_time)
+            self.current_direction = target_direction
+
+        # 全てのピンは現在0(の予定)
+        # 現在の duty から目標 duty へ漸進的に変化
+        if target_duty > self.current_duty:
+            # 加速
+            while self.current_duty < target_duty:
+                self.current_duty = min(self.current_duty + self.delta_duty, target_duty)
+                self._apply_duty()
+                time.sleep(self.delta_time)
+        elif target_duty < self.current_duty:
+            # 減速
+            while self.current_duty > target_duty:
+                self.current_duty = max(self.current_duty - self.delta_duty, target_duty)
+                self._apply_duty()
+                time.sleep(self.delta_time)
+
+class Motor:
+    # 各モーターはMotorChannelで管理
+    
     def __init__(self, right_pin1=20, right_pin2=21, left_pin1=5, left_pin2=7):
-        # ピン番号要確認
-        self.RIGHT_MOTOR_1 = right_pin1
-        self.RIGHT_MOTOR_2 = right_pin2
-        self.LEFT_MOTOR_1 = left_pin1
-        self.LEFT_MOTOR_2 = left_pin2
-
-        self.MOTOR_RANGE = 100  # 0～255
-        FREQUENCY = 4000  # pigpioのデフォルトサンプリングレートは5→8000,4000,2000,1600,1000,800,500,400,320のいずれか
-        # duty = 0  # duty比
-
         self.pi = pigpio.pi()
         if not self.pi.connected:
             raise RuntimeError("Failed to connect to pigpio daemon in motor")
-
-        # 設定
-        # RIGHT_MOTORピン
-        self.pi.set_PWM_frequency(self.RIGHT_MOTOR_1, FREQUENCY)
-        self.pi.set_PWM_range(self.RIGHT_MOTOR_1, self.MOTOR_RANGE)
-        self.pi.set_PWM_frequency(self.RIGHT_MOTOR_2, FREQUENCY)
-        self.pi.set_PWM_range(self.RIGHT_MOTOR_2, self.MOTOR_RANGE)
-        # LEFT_MOTORピン
-        self.pi.set_PWM_frequency(self.LEFT_MOTOR_1, FREQUENCY)
-        self.pi.set_PWM_range(self.LEFT_MOTOR_1, self.MOTOR_RANGE)
-        self.pi.set_PWM_frequency(self.LEFT_MOTOR_2, FREQUENCY)
-        self.pi.set_PWM_range(self.LEFT_MOTOR_2, self.MOTOR_RANGE)
-
-        # 初期化
-        self.pi.set_PWM_dutycycle(self.RIGHT_MOTOR_1, 0)
-        self.pi.set_PWM_dutycycle(self.RIGHT_MOTOR_2, 0)
-        self.pi.set_PWM_dutycycle(self.LEFT_MOTOR_1, 0)
-        self.pi.set_PWM_dutycycle(self.LEFT_MOTOR_2, 0)
-
-
-    def Speedup(self, right_pin1_duty, right_pin2_duty, left_pin1_duty, left_pin2_duty):
-        # Speedup(右の正転duty, 右の逆転duty, 左の正転duty, 左の逆転duty)
-        # 全部これを呼び出す
-
-        # メモ：
-        # getにしてそこからアクセルとブレーキ分岐
-        # 今より大きければアクセル，小さければブレーキ
-        # 小さければマイナスを足す　新-今
-        # どちらも0以上になってはならない(どちらかは必ず0)
-        # 0でない方に足し続ける
-        delta_duty = 0.20
-
-        right_pin1_duty_now = self.pi.get_PWM_dutycycle(self.RIGHT_MOTOR_1)
-        right_pin2_duty_now = self.pi.get_PWM_dutycycle(self.RIGHT_MOTOR_2)
-        left_pin1_duty_now = self.pi.get_PWM_dutycycle(self.LEFT_MOTOR_1)
-        left_pin2_duty_now = self.pi.get_PWM_dutycycle(self.LEFT_MOTOR_2)
-    
-
-        if (right_pin1_duty > 0) and (right_pin2_duty > 0):
-            print("Right: Both pin1 and pin2 over 0 voltage")
-            return
-        elif (left_pin1_duty > 0) and (left_pin2_duty > 0):
-            print("Left: Both pin1 and pin2 over 0 voltage")
-            return
         
-        # 入力と現行の+-が違ったら現行側を0に直す
-        # 右が反転していた場合
-        if abs(right_pin1_duty - right_pin1_duty_now) + abs(right_pin2_duty - right_pin2_duty_now) > 1:
-            if right_pin1_duty_now > right_pin2_duty_now:
-                # right_inverse_duty = right_pin1_duty
-                right_inverse_duty_now = right_pin1_duty_now
-                right_inverse_pin = self.RIGHT_MOTOR_1
-            elif right_pin2_duty_now > right_pin1_duty_now:
-                # right_inverse_duty = right_pin2_duty
-                right_inverse_duty_now = right_pin2_duty_now
-                right_inverse_pin = self.RIGHT_MOTOR_2
-            else:
-                print("right duty +- is different. But right motor already stopped")
-
-            if left_pin1_duty_now > left_pin2_duty_now:
-                # left_inverse_duty = left_pin1_duty
-                left_inverse_duty_now = left_pin1_duty_now
-                left_inverse_pin = self.LEFT_MOTOR_1
-            elif left_pin2_duty_now > left_pin1_duty_now:
-                # left_inverse_duty = left_pin2_duty
-                left_inverse_duty_now = left_pin2_duty_now
-                left_inverse_pin = self.LEFT_MOTOR_2
-            else:
-                print("left duty +- is different. But left motor already stopped")
-
-            for i in range(int(1 / delta_duty)):
-                if 0 <= right_inverse_duty_now <= 1:
-                    self.pi.set_PWM_dutycycle(right_inverse_pin, int(right_inverse_duty_now * self.MOTOR_RANGE))
-                    right_inverse_duty_now -= delta_duty
-                else:
-                    pass
-                if 0 <= left_inverse_duty_now <=1:
-                    self.pi.set_PWM_dutycycle(left_inverse_pin, int(left_inverse_duty_now * self.MOTOR_RANGE))
-                    left_inverse_duty_now -= delta_duty
-                else:
-                    pass
-
-                time.sleep(0.1)
-
-            self.pi.set_PWM_dutycycle(right_inverse_pin, 0)
-            self.pi.set_PWM_dutycycle(left_inverse_pin, 0)
-                    
-
-        # 全てのピンは現在0(の予定)
-        if right_pin1_duty > right_pin2_duty:
-            right_inverse_duty = right_pin1_duty
-            right_inverse_pin = self.RIGHT_MOTOR_1
-        elif right_pin2_duty> right_pin1_duty:
-            right_inverse_duty = right_pin2_duty
-            right_inverse_pin = self.RIGHT_MOTOR_2
-        else:
-            right_inverse_duty = 0
-            print("Right pin is already 0")
-        right_inverse_duty_now = 0
-
-        if left_pin1_duty > left_pin2_duty:
-            left_inverse_duty = left_pin1_duty
-            # left_inverse_duty_now = left_pin1_duty_now
-            left_inverse_pin = self.LEFT_MOTOR_1
-        elif left_pin2_duty > left_pin1_duty:
-            left_inverse_duty = left_pin2_duty
-            # left_inverse_duty_now = left_pin2_duty_now
-            left_inverse_pin = self.LEFT_MOTOR_2
-        else:
-            left_inverse_duty = 0
-            print("Left pin is already 0")
-        left_inverse_duty_now = 0
-
-        for i in range(int(1 / delta_duty)):
-            if 0 <= right_inverse_duty_now <= right_inverse_duty:
-                self.pi.set_PWM_dutycycle(right_inverse_pin, int(right_inverse_duty_now * self.MOTOR_RANGE))
-                right_inverse_duty_now += delta_duty
-            else:
-                pass
-            if 0 <= left_inverse_duty_now <= left_inverse_duty:
-                self.pi.set_PWM_dutycycle(left_inverse_pin, int(left_inverse_duty_now * self.MOTOR_RANGE))
-                left_inverse_duty_now += delta_duty
-            else:
-                pass
-
-                time.sleep(0.1)
-                
-        self.pi.set_PWM_dutycycle(right_inverse_pin, right_inverse_duty)
-        self.pi.set_PWM_dutycycle(left_inverse_pin, left_inverse_duty)
-
+        self.right_motor = MotorChannel(self.pi, right_pin1, right_pin2)
+        self.left_motor  = MotorChannel(self.pi, left_pin1, left_pin2)
 
     def accel(self):
         # 正転
-        self.Speedup(1, 0, 1, 0)
+        self.right_motor.update(1, 0)
+        self.left_motor.update(1, 0)
 
     def stop(self):
         # 惰性ブレーキ
-        self.Speedup(0, 0, 0, 0)
-        
+        self.right_motor.update(0, 0)
+        self.left_motor.update(0, 0)
+
     def brake(self):
         # 短絡ブレーキ(モーターには負荷)
-        self.pi.set_PWM_dutycycle(self.RIGHT_MOTOR_1, int(1 * self.MOTOR_RANGE))
-        self.pi.set_PWM_dutycycle(self.RIGHT_MOTOR_2, int(1 * self.MOTOR_RANGE))
-        self.pi.set_PWM_dutycycle(self.LEFT_MOTOR_1, int(1 * self.MOTOR_RANGE))
-        self.pi.set_PWM_dutycycle(self.LEFT_MOTOR_2, int(1 * self.MOTOR_RANGE))
+        self.pi.set_PWM_dutycycle(self.right_motor.pin_inverse, int(1 * self.right_motor.MOTOR_RANGE))
+        self.pi.set_PWM_dutycycle(self.right_motor.pin_reverse, int(1 * self.right_motor.MOTOR_RANGE))
+        self.pi.set_PWM_dutycycle(self.left_motor.pin_inverse, int(1 * self.left_motor.MOTOR_RANGE))
+        self.pi.set_PWM_dutycycle(self.left_motor.pin_reverse, int(1 * self.left_motor.MOTOR_RANGE))
+        
+        # 状態更新
+        self.right_motor.current_duty = 0
+        self.right_motor.current_direction = 0
+        self.left_motor.current_duty = 0
+        self.left_motor.current_direction = 0
+
+    def leftturn(self):
+        # 左回転(右を向く)
+        self.right_motor.update(0, 1)
+        self.left_motor.update(1, 0)
 
     def rightturn(self):
         # 右回転(左を向く)
-        self.Speedup(1, 0, 0, 1)
-    
-    def leftturn(self):
-        # 左回転(右を向く)
-        self.Speedup(0, 1, 1, 0)
-    
+        self.right_motor.update(1, 0)
+        self.left_motor.update(0, 1)
+
     def back(self):
         # 後ろ
-        self.Speedup(0, 1, 0, 1)
+        self.right_motor.update(0, 1)
+        self.left_motor.update(0, 1)
 
+    def cleanup(self):
+        self.pi.stop()
 
 def main():
-    motor = Motor()
+    motor = Motor(right_pin1=20, right_pin2=21, left_pin1=5, left_pin2=7)
     print("motor initialized\nstart?")
     input()
 
+    print("accel")
     motor.accel()
     time.sleep(2)
+
+    print("stop")
     motor.stop()
     time.sleep(1)
 
+    print("rightturn")
     motor.rightturn()
     time.sleep(2)
+
+    print("leftturn")
     motor.leftturn()
     time.sleep(2)
+
+    print("stop")
     motor.stop()
     time.sleep(1)
 
+    print("accel")
     motor.accel()
     time.sleep(2)
+
+    print("brake")
     motor.brake()
     time.sleep(2)
-    
+
+    print("back")
     motor.back()
     time.sleep(2)
+
+    print("stop")
     motor.stop()
-    print("motor stop")
     time.sleep(1)
-        
-    '''
-    while True:
-        input()
-
-        motor.accel()
-        motor.stop()
-        motor.rightturn()
-        motor.stop()
-        motor.leftturn()
-        motor.stop()
-    '''
-
+    
+    print("test movement end")
+    motor.cleanup()
 
 if __name__ == '__main__':
     main()
