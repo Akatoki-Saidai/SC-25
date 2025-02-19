@@ -23,6 +23,10 @@ if __name__ == "__main__":
     logger.warning("これは警告です")
     logger.error("これはエラーメッセージです")
     logger.critical("これは致命的なエラーメッセージです")
+    try:
+        1/0
+    except Exception as e:
+        logger.exception(f"なんかエラーが置きました：{e}")  # 👈Exception内はこれを使って
 
 # from log import logger  でloggerを読み込んで
 # logger.info("aiu")      のように記録してください
