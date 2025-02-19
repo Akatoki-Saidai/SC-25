@@ -4,6 +4,7 @@ import time
 from ultralytics import YOLO
 import cv2
 import numpy as np
+from picamera2 import Picamera2 
 from log import logger
 
 
@@ -153,58 +154,106 @@ class Camera:
 
             return frame, camera_order
     
-
-if __name__ == '__main__':
+    def __init__(self):
+        self._picam2 = Picamera2()
+        config = self._picam2.create_preview_configuration({"format": 'XRGB8888', "size": (320, 240)})
+        self._picam2.configure(config)
     
-    from picamera2 import Picamera2 
+    def start(self):
+        self._picam2.start()
+    
+    def result(self, *, show = False):
+        frame = self._picam2.capture_array()
+        frame = cv2.rotate(frame, cv2.ROTATE_180)
+        
+        # RGBに変換
+        if frame.shape[2] == 4:
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)  # BGRA → BGR（RGBと等価）
 
-    # カメラセットアップ
-    try:
-        CameraStart = False
-        picam2 = Picamera2()
-        config = picam2.create_preview_configuration({"format": 'XRGB8888', "size": (320, 240)})
-        picam2.configure(config)
-        cam = Camera()
-
-        picam2.start()
-
-        while True:
-            frame = picam2.capture_array()
-            frame = cv2.rotate(frame, cv2.ROTATE_180)
-            
-            # RGBに変換
-            if frame.shape[2] == 4:
-                frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)  # BGRA → BGR（RGBと等価）
-
-            
-            try:
-                # YOLO
-                yolo_xylist, yolo_center_x = cam.yolo_detect(frame)
-                print(f"yolo_xylist: {yolo_xylist}, yolo_center_x: {yolo_center_x}")
-            except Exception as e:
-                print(f"An error occured in yolo_detect : {e}")
-
-            try:
-                # 赤色検出
-                mask = cam.red_detect(frame)
-                red_area, _red_x, _red_y = cam.analyze_red(mask)
-                print(f"red area: {red_area}")
-            except Exception as e:
-                print(f"An error occured in analize_red : {e}")
-            
-            # 判断
-            try:
-                frame, camera_order = cam.judge_cone(frame, yolo_xylist, yolo_center_x, red_area)
-            except Exception as e:
-                print(f"An error occured in judgement : {e}")
-
-
-            # 結果表示
+        # 結果表示
+        if (show == True):
             cv2.imshow('kekka', frame)
             if cv2.waitKey(25) & 0xFF == ord('q'):
                 cv2.destroyAllWindows()
                 print('q interrupted direction by camera')
-                continue
+
+        try:
+            # YOLO
+            yolo_xylist, yolo_center_x = cam.yolo_detect(frame)
+            logger.debug(f"yolo_xylist: {yolo_xylist}, yolo_center_x: {yolo_center_x}")
+        except Exception as e:
+            logger.exception("An error occured in yolo_detect")
+
+        try:
+            # 赤色検出
+            mask = cam.red_detect(frame)
+            red_area, _red_x, _red_y = cam.analyze_red(mask)
+            logger.debug("red area: {red_area}")
+        except Exception as e:
+            logger.exception("An error occured in analize_red")
+        
+        # 判断
+        try:
+            frame, camera_order = cam.judge_cone(frame, yolo_xylist, yolo_center_x, red_area)
+        except Exception as e:
+            logger.exception("An error occured in judgement")
+
+        return camera_order
+    
+
+if __name__ == '__main__':
+    
+    
+
+    # カメラセットアップ
+    try:
+        # CameraStart = False
+        # picam2 = Picamera2()
+        # config = picam2.create_preview_configuration({"format": 'XRGB8888', "size": (320, 240)})
+        # picam2.configure(config)
+        cam = Camera()
+
+        # picam2.start()
+
+        while True:
+            # frame = picam2.capture_array()
+            # frame = cv2.rotate(frame, cv2.ROTATE_180)
+            
+            # # RGBに変換
+            # if frame.shape[2] == 4:
+            #     frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)  # BGRA → BGR（RGBと等価）
+
+            
+            # try:
+            #     # YOLO
+            #     yolo_xylist, yolo_center_x = cam.yolo_detect(frame)
+            #     print(f"yolo_xylist: {yolo_xylist}, yolo_center_x: {yolo_center_x}")
+            # except Exception as e:
+            #     print(f"An error occured in yolo_detect : {e}")
+
+            # try:
+            #     # 赤色検出
+            #     mask = cam.red_detect(frame)
+            #     red_area, _red_x, _red_y = cam.analyze_red(mask)
+            #     print(f"red area: {red_area}")
+            # except Exception as e:
+            #     print(f"An error occured in analize_red : {e}")
+            
+            # # 判断
+            # try:
+            #     frame, camera_order = cam.judge_cone(frame, yolo_xylist, yolo_center_x, red_area)
+            # except Exception as e:
+            #     print(f"An error occured in judgement : {e}")
+
+
+            # # 結果表示
+            # cv2.imshow('kekka', frame)
+            # if cv2.waitKey(25) & 0xFF == ord('q'):
+            #     cv2.destroyAllWindows()
+            #     print('q interrupted direction by camera')
+            #     continue
+
+            cam.result(show=True)
 
             time.sleep(1)
 
