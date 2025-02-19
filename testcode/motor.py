@@ -2,10 +2,9 @@ import pigpio
 import time
 
 class MotorChannel(object):
-    """
-    1つのモーターの制御クラス
-    ※ forwardとreverseどちらか一方のピンにのみPWM出力を行う
-    """
+    # 1つのモーターの制御クラス
+    # ※ inverseとreverseどちらか一方のピンにのみPWM出力を行う
+    
     def __init__(self, pi, pin1, pin2):
         self.pi = pi
         self.pin_inverse = pin1
@@ -31,11 +30,11 @@ class MotorChannel(object):
         # PWM出力を更新(片側)
 
         if self.current_direction == 1:
-            # 正転：forwardに duty、reverseは0
+            # 正転：inverseに duty、reverseは0
             self.pi.set_PWM_dutycycle(self.pin_inverse, int(self.current_duty * self.MOTOR_RANGE))
             self.pi.set_PWM_dutycycle(self.pin_reverse, 0)
         elif self.current_direction == -1:
-            # 逆転：reverseに duty、forwardは0
+            # 逆転：reverseに duty、inverseは0
             self.pi.set_PWM_dutycycle(self.pin_inverse, 0)
             self.pi.set_PWM_dutycycle(self.pin_reverse, int(self.current_duty * self.MOTOR_RANGE))
         else:
@@ -45,9 +44,10 @@ class MotorChannel(object):
 
     def update(self, target_inverse, target_reverse):
         # duty を漸進的に更新
-        # target_forward, target_reverse は [0,1]の値。両方同時に0より大きい場合はエラー
+        # target_inverse, target_reverse は [0,1]の値。両方同時に0より大きい場合はエラー
         
         if target_inverse > 0 and target_reverse > 0:
+            print(f"pin1:{self.pin_inverse}, pin2:{self.pin_reverse}: Both pin over 0 voltage")
             raise ValueError(f"pin1:{self.pin_inverse}, pin2:{self.pin_reverse}: Both pin over 0 voltage")
         
         if target_inverse > 0:
@@ -83,12 +83,13 @@ class MotorChannel(object):
                 self._apply_duty()
                 time.sleep(self.delta_time)
 
-class Motor:
+class Motor(object):
     # 各モーターはMotorChannelで管理
     
     def __init__(self, right_pin1=20, right_pin2=21, left_pin1=5, left_pin2=7):
         self.pi = pigpio.pi()
         if not self.pi.connected:
+            print("Failed to connect to pigpio daemon in motor")
             raise RuntimeError("Failed to connect to pigpio daemon in motor")
         
         self.right_motor = MotorChannel(self.pi, right_pin1, right_pin2)
