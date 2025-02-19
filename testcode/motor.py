@@ -3,7 +3,7 @@ import time
 
 class MotorChannel(object):
     # 1つのモーターの制御クラス
-    # ※ inverseとreverseどちらか一方のピンにのみPWM出力を行う
+    # inverseとreverseどちらか一方のピンにのみPWM出力を行う
     
     def __init__(self, pi, pin1, pin2):
         self.pi = pi
