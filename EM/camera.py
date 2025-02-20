@@ -20,8 +20,8 @@ class Camera:
         model = YOLO(pt_path)
         # 推論
         yolo_results = model.predict(frame, save = False, show = False)
-        logger.debug(type(yolo_results))
-        logger.debug(yolo_results)
+        # logger.debug(type(yolo_results))
+        # logger.debug(yolo_results)
 
         confidence_best = 0
         # 最も信頼性の高いBounding Boxを取得
