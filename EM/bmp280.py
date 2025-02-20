@@ -19,188 +19,188 @@ digH = []
 t_fine = 0.0
 
 class BMP280:
-	def writeReg(self, reg_address, data):
-		try:
-			bus.write_byte_data(i2c_address,reg_address,data)
-		except Exception as e:
-			logger.exception()
+    def writeReg(self, reg_address, data):
+        try:
+            bus.write_byte_data(i2c_address,reg_address,data)
+        except Exception as e:
+            logger.exception()
 
-	def get_calib_param(self):
-		try:
-			calib = []
-		
-			for i in range (0x88,0x88+24):
-				calib.append(bus.read_byte_data(i2c_address,i))
-			calib.append(bus.read_byte_data(i2c_address,0xA1))
-			for i in range (0xE1,0xE1+7):
-				calib.append(bus.read_byte_data(i2c_address,i))
+    def get_calib_param(self):
+        try:
+            calib = []
+        
+            for i in range (0x88,0x88+24):
+                calib.append(bus.read_byte_data(i2c_address,i))
+            calib.append(bus.read_byte_data(i2c_address,0xA1))
+            for i in range (0xE1,0xE1+7):
+                calib.append(bus.read_byte_data(i2c_address,i))
 
-			digT.append((calib[1] << 8) | calib[0])
-			digT.append((calib[3] << 8) | calib[2])
-			digT.append((calib[5] << 8) | calib[4])
-			digP.append((calib[7] << 8) | calib[6])
-			digP.append((calib[9] << 8) | calib[8])
-			digP.append((calib[11]<< 8) | calib[10])
-			digP.append((calib[13]<< 8) | calib[12])
-			digP.append((calib[15]<< 8) | calib[14])
-			digP.append((calib[17]<< 8) | calib[16])
-			digP.append((calib[19]<< 8) | calib[18])
-			digP.append((calib[21]<< 8) | calib[20])
-			digP.append((calib[23]<< 8) | calib[22])
-			digH.append( calib[24] )
-			digH.append((calib[26]<< 8) | calib[25])
-			digH.append( calib[27] )
-			digH.append((calib[28]<< 4) | (0x0F & calib[29]))
-			digH.append((calib[30]<< 4) | ((calib[29] >> 4) & 0x0F))
-			digH.append( calib[31] )
-			
-			for i in range(1,2):
-				if digT[i] & 0x8000:
-					digT[i] = (-digT[i] ^ 0xFFFF) + 1
+            digT.append((calib[1] << 8) | calib[0])
+            digT.append((calib[3] << 8) | calib[2])
+            digT.append((calib[5] << 8) | calib[4])
+            digP.append((calib[7] << 8) | calib[6])
+            digP.append((calib[9] << 8) | calib[8])
+            digP.append((calib[11]<< 8) | calib[10])
+            digP.append((calib[13]<< 8) | calib[12])
+            digP.append((calib[15]<< 8) | calib[14])
+            digP.append((calib[17]<< 8) | calib[16])
+            digP.append((calib[19]<< 8) | calib[18])
+            digP.append((calib[21]<< 8) | calib[20])
+            digP.append((calib[23]<< 8) | calib[22])
+            digH.append( calib[24] )
+            digH.append((calib[26]<< 8) | calib[25])
+            digH.append( calib[27] )
+            digH.append((calib[28]<< 4) | (0x0F & calib[29]))
+            digH.append((calib[30]<< 4) | ((calib[29] >> 4) & 0x0F))
+            digH.append( calib[31] )
+            
+            for i in range(1,2):
+                if digT[i] & 0x8000:
+                    digT[i] = (-digT[i] ^ 0xFFFF) + 1
 
-			for i in range(1,8):
-				if digP[i] & 0x8000:
-					digP[i] = (-digP[i] ^ 0xFFFF) + 1
+            for i in range(1,8):
+                if digP[i] & 0x8000:
+                    digP[i] = (-digP[i] ^ 0xFFFF) + 1
 
-			for i in range(0,6):
-				if digH[i] & 0x8000:
-					digH[i] = (-digH[i] ^ 0xFFFF) + 1  
-		except Exception as e:
-			logger.exception()
+            for i in range(0,6):
+                if digH[i] & 0x8000:
+                    digH[i] = (-digH[i] ^ 0xFFFF) + 1  
+        except Exception as e:
+            logger.exception()
 
-	def readData(self):
-		try:
-			data = []
-			for i in range (0xF7, 0xF7+8):
-				data.append(bus.read_byte_data(i2c_address,i))
-			pres_raw = (data[0] << 12) | (data[1] << 4) | (data[2] >> 4)
-			temp_raw = (data[3] << 12) | (data[4] << 4) | (data[5] >> 4)
-			# hum_raw  = (data[6] << 8)  |  data[7]
-			
-			
-			temperature = self.compensate_T(temp_raw)
-			pressure = self.compensate_P(pres_raw)
-			
-			logger.info("pressure : {:7.2f} hPa".format(pressure/100))
-			logger.info("temp : {:6.2f} ℃".format(temperature))
+    def readData(self):
+        try:
+            data = []
+            for i in range (0xF7, 0xF7+8):
+                data.append(bus.read_byte_data(i2c_address,i))
+            pres_raw = (data[0] << 12) | (data[1] << 4) | (data[2] >> 4)
+            temp_raw = (data[3] << 12) | (data[4] << 4) | (data[5] >> 4)
+            # hum_raw  = (data[6] << 8)  |  data[7]
+            
+            
+            temperature = self.compensate_T(temp_raw)
+            pressure = self.compensate_P(pres_raw)
+            
+            logger.info("pressure : {:7.2f} hPa".format(pressure/100))
+            logger.info("temp : {:6.2f} ℃".format(temperature))
 
-			return temperature, pressure
-		except Exception as e:
-			logger.exception()
+            return temperature, pressure
+        except Exception as e:
+            logger.exception()
 
-	def compensate_P(self, adc_P):
-		try:
-			global  t_fine
-			pressure = 0.0
-			
-			v1 = (t_fine / 2.0) - 64000.0
-			v2 = (((v1 / 4.0) * (v1 / 4.0)) / 2048) * digP[5]
-			v2 = v2 + ((v1 * digP[4]) * 2.0)
-			v2 = (v2 / 4.0) + (digP[3] * 65536.0)
-			v1 = (((digP[2] * (((v1 / 4.0) * (v1 / 4.0)) / 8192)) / 8)  + ((digP[1] * v1) / 2.0)) / 262144
-			v1 = ((32768 + v1) * digP[0]) / 32768
-			
-			if v1 == 0:
-				return 0
-			pressure = ((1048576 - adc_P) - (v2 / 4096)) * 3125
-			if pressure < 0x80000000:
-				pressure = (pressure * 2.0) / v1
-			else:
-				pressure = (pressure / v1) * 2
-			v1 = (digP[8] * (((pressure / 8.0) * (pressure / 8.0)) / 8192.0)) / 4096
-			v2 = ((pressure / 4.0) * digP[7]) / 8192.0
-			pressure = pressure + ((v1 + v2 + digP[6]) / 16.0)  
+    def compensate_P(self, adc_P):
+        try:
+            global  t_fine
+            pressure = 0.0
+            
+            v1 = (t_fine / 2.0) - 64000.0
+            v2 = (((v1 / 4.0) * (v1 / 4.0)) / 2048) * digP[5]
+            v2 = v2 + ((v1 * digP[4]) * 2.0)
+            v2 = (v2 / 4.0) + (digP[3] * 65536.0)
+            v1 = (((digP[2] * (((v1 / 4.0) * (v1 / 4.0)) / 8192)) / 8)  + ((digP[1] * v1) / 2.0)) / 262144
+            v1 = ((32768 + v1) * digP[0]) / 32768
+            
+            if v1 == 0:
+                return 0
+            pressure = ((1048576 - adc_P) - (v2 / 4096)) * 3125
+            if pressure < 0x80000000:
+                pressure = (pressure * 2.0) / v1
+            else:
+                pressure = (pressure / v1) * 2
+            v1 = (digP[8] * (((pressure / 8.0) * (pressure / 8.0)) / 8192.0)) / 4096
+            v2 = ((pressure / 4.0) * digP[7]) / 8192.0
+            pressure = pressure + ((v1 + v2 + digP[6]) / 16.0)  
 
-			# logger.info("pressure : {:7.2f} hPa".format(pressure/100))
-			return pressure
-		except Exception as e:
-			logger.exception()
+            # logger.info("pressure : {:7.2f} hPa".format(pressure/100))
+            return pressure
+        except Exception as e:
+            logger.exception()
 
-	def compensate_T(self, adc_T):
-		try:
-			global t_fine
-			v1 = (adc_T / 16384.0 - digT[0] / 1024.0) * digT[1]
-			v2 = (adc_T / 131072.0 - digT[0] / 8192.0) * (adc_T / 131072.0 - digT[0] / 8192.0) * digT[2]
-			t_fine = v1 + v2
-			temperature = t_fine / 5120.0
+    def compensate_T(self, adc_T):
+        try:
+            global t_fine
+            v1 = (adc_T / 16384.0 - digT[0] / 1024.0) * digT[1]
+            v2 = (adc_T / 131072.0 - digT[0] / 8192.0) * (adc_T / 131072.0 - digT[0] / 8192.0) * digT[2]
+            t_fine = v1 + v2
+            temperature = t_fine / 5120.0
 
-			# logger.info("temp : {:6.2f} ℃".format(temperature/100))
-			return temperature
-		except Exception as e:
-			logger.exception()
+            # logger.info("temp : {:6.2f} ℃".format(temperature/100))
+            return temperature
+        except Exception as e:
+            logger.exception()
 
-	def setup(self):
-		try:
-			osrs_t = 1			#Temperature oversampling x 1
-			osrs_p = 1			#Pressure oversampling x 1
-			# osrs_h = 1			#Humidity oversampling x 1
-			mode   = 3			#Normal mode
-			t_sb   = 5			#Tstandby 1000ms
-			filter = 0			#Filter off
-			spi3w_en = 0			#3-wire SPI Disable
+    def setup(self):
+        try:
+            osrs_t = 1            #Temperature oversampling x 1
+            osrs_p = 1            #Pressure oversampling x 1
+            # osrs_h = 1            #Humidity oversampling x 1
+            mode   = 3            #Normal mode
+            t_sb   = 5            #Tstandby 1000ms
+            filter = 0            #Filter off
+            spi3w_en = 0            #3-wire SPI Disable
 
-			ctrl_meas_reg = (osrs_t << 5) | (osrs_p << 2) | mode
-			config_reg    = (t_sb << 5) | (filter << 2) | spi3w_en
-			# ctrl_hum_reg  = osrs_h
+            ctrl_meas_reg = (osrs_t << 5) | (osrs_p << 2) | mode
+            config_reg    = (t_sb << 5) | (filter << 2) | spi3w_en
+            # ctrl_hum_reg  = osrs_h
 
-			# writeReg(0xF2,ctrl_hum_reg)
-			self.writeReg(0xF4,ctrl_meas_reg)
-			self.writeReg(0xF5,config_reg)
+            # writeReg(0xF2,ctrl_hum_reg)
+            self.writeReg(0xF4,ctrl_meas_reg)
+            self.writeReg(0xF5,config_reg)
 
-			# 一応10回空測定
-			for i in range(10):
-				self.readData()
-		except Exception as e:
-			logger.exception()
-	
-	def __init__(self):
-		# モジュール読み込み時に自動実行
-		self.setup()
-		self.get_calib_param()
-
-	def get_altitude(self, qnh=1013.25, manual_temperature=None):
-		try:
-			# qnh = pressure at sea level where the readings are being taken.
-			# The temperature should be the outdoor temperature.
-			# Use the manual_temperature variable if temperature adjustments are required.
-			temperature, pressure = self.readData()
-			if manual_temperature is not None:
-				temperature = manual_temperature
-			
-			# 気圧と温度を使った算出
-			altitude = ((pow((qnh / pressure), (1.0 / 5.257)) - 1) * (temperature + 273.15)) / 0.0065
-			
-			# 気圧のみの算出
-			# altitude = (((1 - (pow((pressure / qnh), 0.190284))) * 145366.45) / 0.3048 ) / 10
-			
-			return altitude
-		except Exception as e:
-			logger.exception()
+            # 一応10回空測定
+            for i in range(10):
+                self.readData()
+        except Exception as e:
+            logger.exception()
     
-	def get_baseline(self):
-		try:
-			baseline_values = []
-			baseline_size = 100
+    def __init__(self):
+        # モジュール読み込み時に自動実行
+        self.setup()
+        self.get_calib_param()
 
-			for i in range(baseline_size):
-				_, pressure = self.get_temp_pres()
-				baseline_values.append(pressure)
-				time.sleep(0.1)
-			baseline = sum(baseline_values[:-80]) / len(baseline_values[:-80])
-		
-			return baseline
-		except Exception as e:
-			logger.exception()
+    def get_altitude(self, qnh=1013.25, manual_temperature=None):
+        try:
+            # qnh = pressure at sea level where the readings are being taken.
+            # The temperature should be the outdoor temperature.
+            # Use the manual_temperature variable if temperature adjustments are required.
+            temperature, pressure = self.readData()
+            if manual_temperature is not None:
+                temperature = manual_temperature
+            
+            # 気圧と温度を使った算出
+            altitude = ((pow((qnh / pressure), (1.0 / 5.257)) - 1) * (temperature + 273.15)) / 0.0065
+            
+            # 気圧のみの算出
+            # altitude = (((1 - (pow((pressure / qnh), 0.190284))) * 145366.45) / 0.3048 ) / 10
+            
+            return altitude
+        except Exception as e:
+            logger.exception()
+    
+    def get_baseline(self):
+        try:
+            baseline_values = []
+            baseline_size = 100
+
+            for i in range(baseline_size):
+                _, pressure = self.get_temp_pres()
+                baseline_values.append(pressure)
+                time.sleep(0.1)
+            baseline = sum(baseline_values[:-80]) / len(baseline_values[:-80])
+        
+            return baseline
+        except Exception as e:
+            logger.exception()
 
 
 if __name__ == '__main__':
-	bmp = BMP280()
-	
-	while True:
-		try:
-			temperature, pressure = bmp.readData()
-		except Exception as e:
-			print(f"Unexpected error occcured: {e}")
+    bmp = BMP280()
+    
+    while True:
+        try:
+            temperature, pressure = bmp.readData()
+        except Exception as e:
+            print(f"Unexpected error occcured: {e}")
 
 
 
