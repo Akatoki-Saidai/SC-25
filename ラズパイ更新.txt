@@ -4,3 +4,4 @@ git pull
 cp ./ ../../SC-25 -r -f
 cd ../../SC-25
 . SC-25/bin/activate
+cd EM
