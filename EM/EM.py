@@ -1,6 +1,6 @@
 from bmp280 import BMP280
 from bno055 import BNO055
-from sg90 import SG90
+# from sg90 import SG90
 from log import logger
 from micropyGPS import MicropyGPS
 from motor import Motor
@@ -26,7 +26,7 @@ def setup():
         motor = Motor(right_pin1=20, right_pin2=21, left_pin1=5, left_pin2=7)
 
         # サーボモーターのセットアップ
-        servo = SG90(pin=26, min_angle=-90, max_angle=90, ini_angle=0, freq=50)
+        # servo = SG90(pin=26, min_angle=-90, max_angle=90, ini_angle=0, freq=50)
 
         # スピーカーのセットアップ
         # 保留
