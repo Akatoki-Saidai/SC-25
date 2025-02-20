@@ -13,106 +13,115 @@ pt_path = "./SC-25_yolo_ver2.pt"
 
 class Camera:
     def yolo_detect(self, frame):
-        yolo_xylist = 0
-        center_x = 0
-        
-        # YOLOv10nモデルをロード
-        model = YOLO(pt_path)
-        # 推論
-        yolo_results = model.predict(frame, save = False, show = False)
-        # logger.debug(type(yolo_results))
-        # logger.debug(yolo_results)
+        try:
+            yolo_xylist = 0
+            center_x = 0
+            
+            # YOLOv10nモデルをロード
+            model = YOLO(pt_path)
+            # 推論
+            yolo_results = model.predict(frame, save = False, show = False)
+            # logger.debug(type(yolo_results))
+            # logger.debug(yolo_results)
 
-        confidence_best = 0
-        # 最も信頼性の高いBounding Boxを取得
-        yolo_result = yolo_results[0]
-        # logger.debug("yolo_result: ",yolo_result)
-        # バウンディングボックス情報を NumPy 配列で取得
-        Bounding_box = yolo_result.boxes.xyxy.numpy()
-        # logger.debug("Bounding_box: ", Bounding_box)
-        confidences = yolo_result.boxes.conf.numpy()
-        # logger.debug("confidences: ", confidences)
+            confidence_best = 0
+            # 最も信頼性の高いBounding Boxを取得
+            yolo_result = yolo_results[0]
+            # logger.debug("yolo_result: ",yolo_result)
+            # バウンディングボックス情報を NumPy 配列で取得
+            Bounding_box = yolo_result.boxes.xyxy.numpy()
+            # logger.debug("Bounding_box: ", Bounding_box)
+            confidences = yolo_result.boxes.conf.numpy()
+            # logger.debug("confidences: ", confidences)
 
-        if len(Bounding_box) == 0:
-            logger.debug("No objects detected.")
+            if len(Bounding_box) == 0:
+                logger.debug("No objects detected.")
 
-        else:
-            for i in range(len(Bounding_box)):
-                confidence = confidences[i]
-                if confidence < confidence_best:
-                    continue
-                else:
-                    confidence_best = confidence
-                xmin, ymin, xmax, ymax = Bounding_box[i]
-                
-
-                '''
-                Bounding_box = yolo_results[0].boxes.pandas()
-                # logger.debug(Bounding_box)
+            else:
                 for i in range(len(Bounding_box)):
-                    confidence = Bounding_box.confidence[i]
-                    # name = Bounding_box.name[i]
+                    confidence = confidences[i]
                     if confidence < confidence_best:
                         continue
                     else:
                         confidence_best = confidence
-                    xmin = Bounding_box.xmin[i]
-                    ymin = Bounding_box.ymin[i]
-                    xmax = Bounding_box.xmax[i]
-                    ymax = Bounding_box.ymax[i]
-                '''
-            
-            center_x = int(xmin + (xmax - xmin) / 2)
-            yolo_xylist = [xmin, ymin, xmax, ymax, confidence]
+                    xmin, ymin, xmax, ymax = Bounding_box[i]
+                    
 
-        return yolo_xylist, center_x
+                    '''
+                    Bounding_box = yolo_results[0].boxes.pandas()
+                    # logger.debug(Bounding_box)
+                    for i in range(len(Bounding_box)):
+                        confidence = Bounding_box.confidence[i]
+                        # name = Bounding_box.name[i]
+                        if confidence < confidence_best:
+                            continue
+                        else:
+                            confidence_best = confidence
+                        xmin = Bounding_box.xmin[i]
+                        ymin = Bounding_box.ymin[i]
+                        xmax = Bounding_box.xmax[i]
+                        ymax = Bounding_box.ymax[i]
+                    '''
+                
+                center_x = int(xmin + (xmax - xmin) / 2)
+                yolo_xylist = [xmin, ymin, xmax, ymax, confidence]
+
+            return yolo_xylist, center_x
+        except Exception as e:
+            logger.exception()
 
 
     def red_detect(self, frame):
-        # HSV色空間に変換
-        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        try:
+            # HSV色空間に変換
+            hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-        # 赤色のHSVの値域1
-        hsv_min = np.array([0, 117, 104])
-        hsv_max = np.array([11, 255, 255])
-        mask1 = cv2.inRange(hsv, hsv_min, hsv_max)
+            # 赤色のHSVの値域1
+            hsv_min = np.array([0, 117, 104])
+            hsv_max = np.array([11, 255, 255])
+            mask1 = cv2.inRange(hsv, hsv_min, hsv_max)
 
-        # 赤色のHSVの値域2
-        hsv_min = np.array([169, 117, 104])
-        hsv_max = np.array([179, 255, 255])
-        mask2 = cv2.inRange(hsv, hsv_min, hsv_max)
+            # 赤色のHSVの値域2
+            hsv_min = np.array([169, 117, 104])
+            hsv_max = np.array([179, 255, 255])
+            mask2 = cv2.inRange(hsv, hsv_min, hsv_max)
 
-        return mask1 + mask2
+            return mask1 + mask2
+        except Exception as e:
+            logger.exception()
     
     def analyze_red(self, mask):
-        
-        area = 0
-        center_x = 0
-        center_y = 0
-        
-        # 画像の中にある領域を検出する
-        contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        try:
+            area = 0
+            center_x = 0
+            center_y = 0
+            
+            # 画像の中にある領域を検出する
+            contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
-        if 0 < len(contours):
-            # 輪郭群の中の最大の輪郭を取得する
-            biggest_contour = max(contours, key=cv2.contourArea)
+            if 0 < len(contours):
+                # 輪郭群の中の最大の輪郭を取得する
+                biggest_contour = max(contours, key=cv2.contourArea)
 
-            # 最大の領域の外接矩形を取得する
-            rect = cv2.boundingRect(biggest_contour)
+                # 最大の領域の外接矩形を取得する
+                rect = cv2.boundingRect(biggest_contour)
 
-            # #最大の領域の中心座標を取得する
-            center_x = (rect[0] + rect[2] // 2)
-            center_y = (rect[1] + rect[3] // 2)
+                # #最大の領域の中心座標を取得する
+                center_x = (rect[0] + rect[2] // 2)
+                center_y = (rect[1] + rect[3] // 2)
 
-            # 最大の領域の面積を取得する-
-            area = cv2.contourArea(biggest_contour)
+                # 最大の領域の面積を取得する-
+                area = cv2.contourArea(biggest_contour)
 
-            # cv2.putText(frame, str(center_x), (center_x, center_y - 20), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 1)
+                # cv2.putText(frame, str(center_x), (center_x, center_y - 20), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 1)
 
-        return area, center_x, center_y
+            return area, center_x, center_y
+        except Exception as e:
+            logger.exception()
 
 
     def judge_cone(self, frame, yolo_xylist, yolo_center_x, red_area):
+        try:
             frame_center_x = frame.shape[1] // 2
 
             # 中心座標のx座標が画像の中心より大きいか小さいか判定
@@ -153,52 +162,63 @@ class Camera:
                 camera_order = 0
 
             return frame, camera_order
+        except Exception as e:
+            logger.exception()
     
     def __init__(self):
-        self._picam2 = Picamera2()
-        config = self._picam2.create_preview_configuration({"format": 'XRGB8888', "size": (320, 240)})
-        self._picam2.configure(config)
+        try:
+            self._picam2 = Picamera2()
+            config = self._picam2.create_preview_configuration({"format": 'XRGB8888', "size": (320, 240)})
+            self._picam2.configure(config)
+        except Exception as e:
+            logger.exception()
     
     def start(self):
-        self._picam2.start()
+        try:
+            self._picam2.start()
+        except Exception as e:
+            logger.exception()
     
     def result(self, *, show = False):
-        frame = self._picam2.capture_array()
-        frame = cv2.rotate(frame, cv2.ROTATE_180)
-        
-        # RGBに変換
-        if frame.shape[2] == 4:
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)  # BGRA → BGR（RGBと等価）
-
         try:
-            # YOLO
-            yolo_xylist, yolo_center_x = cam.yolo_detect(frame)
-            logger.debug(f"yolo_xylist: {yolo_xylist}, yolo_center_x: {yolo_center_x}")
-        except Exception as e:
-            logger.exception("An error occured in yolo_detect")
+            frame = self._picam2.capture_array()
+            frame = cv2.rotate(frame, cv2.ROTATE_180)
+            
+            # RGBに変換
+            if frame.shape[2] == 4:
+                frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)  # BGRA → BGR（RGBと等価）
 
-        try:
-            # 赤色検出
-            mask = cam.red_detect(frame)
-            red_area, _red_x, _red_y = cam.analyze_red(mask)
-            logger.debug("red area: {red_area}")
-        except Exception as e:
-            logger.exception("An error occured in analize_red")
-        
-        # 判断
-        try:
-            frame, camera_order = cam.judge_cone(frame, yolo_xylist, yolo_center_x, red_area)
-        except Exception as e:
-            logger.exception("An error occured in judgement")
+            try:
+                # YOLO
+                yolo_xylist, yolo_center_x = cam.yolo_detect(frame)
+                logger.debug(f"yolo_xylist: {yolo_xylist}, yolo_center_x: {yolo_center_x}")
+            except Exception as e:
+                logger.exception("An error occured in yolo_detect")
 
-        # 結果表示
-        if (show == True):
-            cv2.imshow('kekka', frame)
-            if cv2.waitKey(25) & 0xFF == ord('q'):
-                cv2.destroyAllWindows()
-                logger.log('q interrupted direction by camera')
+            try:
+                # 赤色検出
+                mask = cam.red_detect(frame)
+                red_area, _red_x, _red_y = cam.analyze_red(mask)
+                logger.debug("red area: {red_area}")
+            except Exception as e:
+                logger.exception("An error occured in analize_red")
+            
+            # 判断
+            try:
+                frame, camera_order = cam.judge_cone(frame, yolo_xylist, yolo_center_x, red_area)
+            except Exception as e:
+                logger.exception("An error occured in judgement")
 
-        return camera_order
+            # 結果表示
+            if (show == True):
+                cv2.imshow('kekka', frame)
+                if cv2.waitKey(25) & 0xFF == ord('q'):
+                    cv2.destroyAllWindows()
+                    logger.log('q interrupted direction by camera')
+
+            return camera_order
+        except Exception as e:
+            logger.exception()
     
 
 if __name__ == '__main__':

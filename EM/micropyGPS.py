@@ -573,79 +573,82 @@ class MicropyGPS(object):
         Function builds a list of received string that are validate by CRC prior to parsing by the  appropriate
         sentence function. Returns sentence type on successful parse, None otherwise"""
 
-        valid_sentence = False
+        try:
+            valid_sentence = False
 
-        # Validate new_char is a printable char
-        ascii_char = ord(new_char)
+            # Validate new_char is a printable char
+            ascii_char = ord(new_char)
 
-        if 10 <= ascii_char <= 126:
-            self.char_count += 1
+            if 10 <= ascii_char <= 126:
+                self.char_count += 1
 
-            # Write Character to log file if enabled
-            if self.log_en:
-                self.write_log(new_char)
+                # Write Character to log file if enabled
+                if self.log_en:
+                    self.write_log(new_char)
 
-            # Check if a new string is starting ($)
-            if new_char == '$':
-                self.new_sentence()
-                return None
-
-            elif self.sentence_active:
-
-                # Check if sentence is ending (*)
-                if new_char == '*':
-                    self.process_crc = False
-                    self.active_segment += 1
-                    self.gps_segments.append('')
+                # Check if a new string is starting ($)
+                if new_char == '$':
+                    self.new_sentence()
                     return None
 
-                # Check if a section is ended (,), Create a new substring to feed
-                # characters to
-                elif new_char == ',':
-                    self.active_segment += 1
-                    self.gps_segments.append('')
+                elif self.sentence_active:
 
-                # Store All Other printable character and check CRC when ready
-                else:
-                    self.gps_segments[self.active_segment] += new_char
+                    # Check if sentence is ending (*)
+                    if new_char == '*':
+                        self.process_crc = False
+                        self.active_segment += 1
+                        self.gps_segments.append('')
+                        return None
 
-                    # When CRC input is disabled, sentence is nearly complete
-                    if not self.process_crc:
+                    # Check if a section is ended (,), Create a new substring to feed
+                    # characters to
+                    elif new_char == ',':
+                        self.active_segment += 1
+                        self.gps_segments.append('')
 
-                        if len(self.gps_segments[self.active_segment]) == 2:
-                            try:
-                                final_crc = int(self.gps_segments[self.active_segment], 16)
-                                if self.crc_xor == final_crc:
-                                    valid_sentence = True
-                                else:
-                                    self.crc_fails += 1
-                            except ValueError:
-                                pass  # CRC Value was deformed and could not have been correct
+                    # Store All Other printable character and check CRC when ready
+                    else:
+                        self.gps_segments[self.active_segment] += new_char
 
-                # Update CRC
-                if self.process_crc:
-                    self.crc_xor ^= ascii_char
+                        # When CRC input is disabled, sentence is nearly complete
+                        if not self.process_crc:
 
-                # If a Valid Sentence Was received and it's a supported sentence, then parse it!!
-                if valid_sentence:
-                    self.clean_sentences += 1  # Increment clean sentences received
-                    self.sentence_active = False  # Clear Active Processing Flag
+                            if len(self.gps_segments[self.active_segment]) == 2:
+                                try:
+                                    final_crc = int(self.gps_segments[self.active_segment], 16)
+                                    if self.crc_xor == final_crc:
+                                        valid_sentence = True
+                                    else:
+                                        self.crc_fails += 1
+                                except ValueError:
+                                    pass  # CRC Value was deformed and could not have been correct
 
-                    if self.gps_segments[0] in self.supported_sentences:
+                    # Update CRC
+                    if self.process_crc:
+                        self.crc_xor ^= ascii_char
 
-                        # parse the Sentence Based on the message type, return True if parse is clean
-                        if self.supported_sentences[self.gps_segments[0]](self):
+                    # If a Valid Sentence Was received and it's a supported sentence, then parse it!!
+                    if valid_sentence:
+                        self.clean_sentences += 1  # Increment clean sentences received
+                        self.sentence_active = False  # Clear Active Processing Flag
 
-                            # Let host know that the GPS object was updated by returning parsed sentence type
-                            self.parsed_sentences += 1
-                            return self.gps_segments[0]
+                        if self.gps_segments[0] in self.supported_sentences:
 
-                # Check that the sentence buffer isn't filling up with Garage waiting for the sentence to complete
-                if self.char_count > self.SENTENCE_LIMIT:
-                    self.sentence_active = False
+                            # parse the Sentence Based on the message type, return True if parse is clean
+                            if self.supported_sentences[self.gps_segments[0]](self):
 
-        # Tell Host no new sentence was parsed
-        return None
+                                # Let host know that the GPS object was updated by returning parsed sentence type
+                                self.parsed_sentences += 1
+                                return self.gps_segments[0]
+
+                    # Check that the sentence buffer isn't filling up with Garage waiting for the sentence to complete
+                    if self.char_count > self.SENTENCE_LIMIT:
+                        self.sentence_active = False
+
+            # Tell Host no new sentence was parsed
+            return None
+        except Exception as e:
+            logger.exception()
 
     def new_fix_time(self):
         """Updates a high resolution counter with current time when fix is updated. Currently only triggered from
@@ -781,55 +784,58 @@ class MicropyGPS(object):
         :return: date_string  string with long or short format date
         """
 
-        # Long Format Januray 1st, 2014
-        if formatting == 'long':
-            # Retrieve Month string from private set
-            month = self.__MONTHS[self.date[1] - 1]
+        try:
+            # Long Format Januray 1st, 2014
+            if formatting == 'long':
+                # Retrieve Month string from private set
+                month = self.__MONTHS[self.date[1] - 1]
 
-            # Determine Date Suffix
-            if self.date[0] in (1, 21, 31):
-                suffix = 'st'
-            elif self.date[0] in (2, 22):
-                suffix = 'nd'
-            elif self.date[0] == (3, 23):
-                suffix = 'rd'
+                # Determine Date Suffix
+                if self.date[0] in (1, 21, 31):
+                    suffix = 'st'
+                elif self.date[0] in (2, 22):
+                    suffix = 'nd'
+                elif self.date[0] == (3, 23):
+                    suffix = 'rd'
+                else:
+                    suffix = 'th'
+
+                day = str(self.date[0]) + suffix  # Create Day String
+
+                year = century + str(self.date[2])  # Create Year String
+
+                date_string = month + ' ' + day + ', ' + year  # Put it all together
+
             else:
-                suffix = 'th'
+                # Add leading zeros to day string if necessary
+                if self.date[0] < 10:
+                    day = '0' + str(self.date[0])
+                else:
+                    day = str(self.date[0])
 
-            day = str(self.date[0]) + suffix  # Create Day String
+                # Add leading zeros to month string if necessary
+                if self.date[1] < 10:
+                    month = '0' + str(self.date[1])
+                else:
+                    month = str(self.date[1])
 
-            year = century + str(self.date[2])  # Create Year String
+                # Add leading zeros to year string if necessary
+                if self.date[2] < 10:
+                    year = '0' + str(self.date[2])
+                else:
+                    year = str(self.date[2])
 
-            date_string = month + ' ' + day + ', ' + year  # Put it all together
+                # Build final string based on desired formatting
+                if formatting == 's_dmy':
+                    date_string = day + '/' + month + '/' + year
 
-        else:
-            # Add leading zeros to day string if necessary
-            if self.date[0] < 10:
-                day = '0' + str(self.date[0])
-            else:
-                day = str(self.date[0])
+                else:  # Default date format
+                    date_string = month + '/' + day + '/' + year
 
-            # Add leading zeros to month string if necessary
-            if self.date[1] < 10:
-                month = '0' + str(self.date[1])
-            else:
-                month = str(self.date[1])
-
-            # Add leading zeros to year string if necessary
-            if self.date[2] < 10:
-                year = '0' + str(self.date[2])
-            else:
-                year = str(self.date[2])
-
-            # Build final string based on desired formatting
-            if formatting == 's_dmy':
-                date_string = day + '/' + month + '/' + year
-
-            else:  # Default date format
-                date_string = month + '/' + day + '/' + year
-
-        logger.log('gnss_time', f'{century}{year}-{month}-{day}T{self.timestamp[0]}:{self.timestamp[1]}:{self.timestamp[2]}Z')  # 測定値を記録
-        return date_string
+            logger.log('gnss_time', f'{century}{year}-{month}-{day}T{self.timestamp[0]}:{self.timestamp[1]}:{self.timestamp[2]}Z')  # 測定値を記録
+            return date_string
+        except Exception as e:
+            logger.exception()
 
     # All the currently supported NMEA sentences
     supported_sentences = {'GPRMC': gprmc, 'GLRMC': gprmc,

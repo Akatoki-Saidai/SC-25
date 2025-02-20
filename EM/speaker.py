@@ -12,15 +12,18 @@ proces_aplay = C()
 
 # .poll()は終了していなかったらNone，終了していたらそのステータスを返す．
 def audio_play(audio_path):
-    global proces_aplay
-    # logger.log('Music play')
-    if (proces_aplay.poll() != None):
-        proces_aplay = subprocess.Popen(f"aplay --device=hw:1,0 {audio_path}", shell=True)
+    try:
+        global proces_aplay
+        # logger.log('Music play')
+        if (proces_aplay.poll() != None):
+            proces_aplay = subprocess.Popen(f"aplay --device=hw:1,0 {audio_path}", shell=True)
 
-        logger.log("Play music")
+            logger.log("Play music")
 
-    else:
-        logger.warning("already playing music now. canceled playing.")
+        else:
+            logger.warning("already playing music now. canceled playing.")
+    except Exception as e:
+            logger.exception()
 
 
 if __name__ == '__main__':

@@ -31,31 +31,43 @@ class SG90:
         """
         サーボモータを指定した角度に設定する
         """
-        if target_angle < self._min_angle or target_angle > self._max_angle:
-            logger.error(f"角度は{self._min_angle}から{self._max_angle}度の間で指定してください。")
-            return
-        # 角度[degree] → パルス幅[μs]に変換
-        pulse_width = ((target_angle + self._max_angle) / (self._max_angle - self._min_angle)) * (2000 - 1000) + 1000
-        self._angle = target_angle
-        # duty比（0-1023の範囲）に変換
-        duty_cycle = int((pulse_width / 20000) * 1023)
-        # PWM出力
-        self._pwm.duty_u16(duty_cycle)
+        try:
+            if target_angle < self._min_angle or target_angle > self._max_angle:
+                logger.error(f"角度は{self._min_angle}から{self._max_angle}度の間で指定してください。")
+                return
+            # 角度[degree] → パルス幅[μs]に変換
+            pulse_width = ((target_angle + self._max_angle) / (self._max_angle - self._min_angle)) * (2000 - 1000) + 1000
+            self._angle = target_angle
+            # duty比（0-1023の範囲）に変換
+            duty_cycle = int((pulse_width / 20000) * 1023)
+            # PWM出力
+            self._pwm.duty_u16(duty_cycle)
+        except Exception as e:
+            logger.exception()
     
     def get_angle(self):
-        return self._angle
+        try:
+            return self._angle
+        except Exception as e:
+            logger.exception()
 
     def set_ini_angle(self) -> None:
         """
         初期設定角度（ini_angle）に設定
         """
-        self.set_angle(self._ini_angle)
+        try:
+            self.set_angle(self._ini_angle)
+        except Exception as e:
+            logger.exception()
 
     def stop(self) -> None:
         """
         PWM信号を停止
         """
-        self._pwm.duty_u16(0)
+        try:
+            self._pwm.duty_u16(0)
+        except Exception as e:
+            logger.exception()
 
 if __name__ == "__main__":
     # 動作サンプル

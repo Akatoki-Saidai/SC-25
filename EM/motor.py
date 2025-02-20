@@ -44,45 +44,48 @@ class MotorChannel(object):
             self.pi.set_PWM_dutycycle(self.pin_reverse, 0)
 
     def update(self, target_inverse, target_reverse):
-        # duty を漸進的に更新
-        # target_inverse, target_reverse は [0,1]の値。両方同時に0より大きい場合はエラー
-        
-        if target_inverse > 0 and target_reverse > 0:
-            logger.error(f"pin1:{self.pin_inverse}, pin2:{self.pin_reverse}: Both pin over 0 voltage")
-            raise ValueError(f"pin1:{self.pin_inverse}, pin2:{self.pin_reverse}: Both pin over 0 voltage")
-        
-        if target_inverse > 0:
-            target_direction = 1
-            target_duty = target_inverse
-        elif target_reverse > 0:
-            target_direction = -1
-            target_duty = target_reverse
-        else:
-            target_direction = 0
-            target_duty = 0.0
+        try:
+            # duty を漸進的に更新
+            # target_inverse, target_reverse は [0,1]の値。両方同時に0より大きい場合はエラー
+            
+            if target_inverse > 0 and target_reverse > 0:
+                logger.error(f"pin1:{self.pin_inverse}, pin2:{self.pin_reverse}: Both pin over 0 voltage")
+                raise ValueError(f"pin1:{self.pin_inverse}, pin2:{self.pin_reverse}: Both pin over 0 voltage")
+            
+            if target_inverse > 0:
+                target_direction = 1
+                target_duty = target_inverse
+            elif target_reverse > 0:
+                target_direction = -1
+                target_duty = target_reverse
+            else:
+                target_direction = 0
+                target_duty = 0.0
 
-        # 入力と現行の+-が違ったら現行側を0に直す
-        if self.current_direction != target_direction:
-            while self.current_duty > 0:
-                self.current_duty = max(self.current_duty - self.delta_duty, 0)
-                self._apply_duty()
-                time.sleep(self.delta_time)
-            self.current_direction = target_direction
+            # 入力と現行の+-が違ったら現行側を0に直す
+            if self.current_direction != target_direction:
+                while self.current_duty > 0:
+                    self.current_duty = max(self.current_duty - self.delta_duty, 0)
+                    self._apply_duty()
+                    time.sleep(self.delta_time)
+                self.current_direction = target_direction
 
-        # 全てのピンは現在0(の予定)
-        # 現在の duty から目標 duty へ漸進的に変化
-        if target_duty > self.current_duty:
-            # 加速
-            while self.current_duty < target_duty:
-                self.current_duty = min(self.current_duty + self.delta_duty, target_duty)
-                self._apply_duty()
-                time.sleep(self.delta_time)
-        elif target_duty < self.current_duty:
-            # 減速
-            while self.current_duty > target_duty:
-                self.current_duty = max(self.current_duty - self.delta_duty, target_duty)
-                self._apply_duty()
-                time.sleep(self.delta_time)
+            # 全てのピンは現在0(の予定)
+            # 現在の duty から目標 duty へ漸進的に変化
+            if target_duty > self.current_duty:
+                # 加速
+                while self.current_duty < target_duty:
+                    self.current_duty = min(self.current_duty + self.delta_duty, target_duty)
+                    self._apply_duty()
+                    time.sleep(self.delta_time)
+            elif target_duty < self.current_duty:
+                # 減速
+                while self.current_duty > target_duty:
+                    self.current_duty = max(self.current_duty - self.delta_duty, target_duty)
+                    self._apply_duty()
+                    time.sleep(self.delta_time)
+        except Exception as e:
+            logger.exception()
 
 class Motor(object):
     # 各モーターはMotorChannelで管理
@@ -98,44 +101,65 @@ class Motor(object):
 
     def accel(self):
         # 正転
-        self.right_motor.update(1, 0)
-        self.left_motor.update(1, 0)
+        try:
+            self.right_motor.update(1, 0)
+            self.left_motor.update(1, 0)
+        except Exception as e:
+            logger.exception()
 
     def stop(self):
         # 惰性ブレーキ
-        self.right_motor.update(0, 0)
-        self.left_motor.update(0, 0)
+        try:
+            self.right_motor.update(0, 0)
+            self.left_motor.update(0, 0)
+        except Exception as e:
+            logger.exception()
 
     def brake(self):
         # 短絡ブレーキ(モーターには負荷)
-        self.pi.set_PWM_dutycycle(self.right_motor.pin_inverse, int(1 * self.right_motor.MOTOR_RANGE))
-        self.pi.set_PWM_dutycycle(self.right_motor.pin_reverse, int(1 * self.right_motor.MOTOR_RANGE))
-        self.pi.set_PWM_dutycycle(self.left_motor.pin_inverse, int(1 * self.left_motor.MOTOR_RANGE))
-        self.pi.set_PWM_dutycycle(self.left_motor.pin_reverse, int(1 * self.left_motor.MOTOR_RANGE))
-        
-        # 状態更新
-        self.right_motor.current_duty = 0
-        self.right_motor.current_direction = 0
-        self.left_motor.current_duty = 0
-        self.left_motor.current_direction = 0
+        try:
+            self.pi.set_PWM_dutycycle(self.right_motor.pin_inverse, int(1 * self.right_motor.MOTOR_RANGE))
+            self.pi.set_PWM_dutycycle(self.right_motor.pin_reverse, int(1 * self.right_motor.MOTOR_RANGE))
+            self.pi.set_PWM_dutycycle(self.left_motor.pin_inverse, int(1 * self.left_motor.MOTOR_RANGE))
+            self.pi.set_PWM_dutycycle(self.left_motor.pin_reverse, int(1 * self.left_motor.MOTOR_RANGE))
+
+            # 状態更新
+            self.right_motor.current_duty = 0
+            self.right_motor.current_direction = 0
+            self.left_motor.current_duty = 0
+            self.left_motor.current_direction = 0
+        except Exception as e:
+            logger.exception()
 
     def leftturn(self):
         # 左回転(右を向く)
-        self.right_motor.update(0, 1)
-        self.left_motor.update(1, 0)
+        try:
+            self.right_motor.update(0, 1)
+            self.left_motor.update(1, 0)
+        except Exception as e:
+            logger.exception()
 
     def rightturn(self):
         # 右回転(左を向く)
-        self.right_motor.update(1, 0)
-        self.left_motor.update(0, 1)
+        try:
+            self.right_motor.update(1, 0)
+            self.left_motor.update(0, 1)
+        except Exception as e:
+            logger.exception()
 
     def back(self):
         # 後ろ
-        self.right_motor.update(0, 1)
-        self.left_motor.update(0, 1)
+        try:
+            self.right_motor.update(0, 1)
+            self.left_motor.update(0, 1)
+        except Exception as e:
+            logger.exception()
 
     def cleanup(self):
-        self.pi.stop()
+        try:
+            self.pi.stop()
+        except Exception as e:
+            logger.exception()
 
 def main():
     motor = Motor(right_pin1=20, right_pin2=21, left_pin1=5, left_pin2=7)
