@@ -26,12 +26,12 @@ class Camera:
         confidence_best = 0
         # 最も信頼性の高いBounding Boxを取得
         yolo_result = yolo_results[0]
-        logger.debug("yolo_result: ",yolo_result)
+        # logger.debug("yolo_result: ",yolo_result)
         # バウンディングボックス情報を NumPy 配列で取得
         Bounding_box = yolo_result.boxes.xyxy.numpy()
-        logger.debug("Bounding_box: ", Bounding_box)
+        # logger.debug("Bounding_box: ", Bounding_box)
         confidences = yolo_result.boxes.conf.numpy()
-        logger.debug("confidences: ", confidences)
+        # logger.debug("confidences: ", confidences)
 
         if len(Bounding_box) == 0:
             logger.debug("No objects detected.")
