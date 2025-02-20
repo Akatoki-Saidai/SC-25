@@ -94,7 +94,7 @@ class Camera:
         contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
         if 0 < len(contours):
-            # 輪郭群の中の最大の輪郭を取得する-
+            # 輪郭群の中の最大の輪郭を取得する
             biggest_contour = max(contours, key=cv2.contourArea)
 
             # 最大の領域の外接矩形を取得する
