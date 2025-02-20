@@ -68,7 +68,7 @@ class Camera:
 
             return yolo_xylist, center_x
         except Exception as e:
-            logger.exception()
+            logger.exception("An error occured!")
 
 
     def red_detect(self, frame):
@@ -88,7 +88,7 @@ class Camera:
 
             return mask1 + mask2
         except Exception as e:
-            logger.exception()
+            logger.exception("An error occured!")
     
     def analyze_red(self, mask):
         try:
@@ -117,7 +117,7 @@ class Camera:
 
             return area, center_x, center_y
         except Exception as e:
-            logger.exception()
+            logger.exception("An error occured!")
 
 
     def judge_cone(self, frame, yolo_xylist, yolo_center_x, red_area):
@@ -163,7 +163,7 @@ class Camera:
 
             return frame, camera_order
         except Exception as e:
-            logger.exception()
+            logger.exception("An error occured!")
     
     def __init__(self):
         try:
@@ -171,13 +171,13 @@ class Camera:
             config = self._picam2.create_preview_configuration({"format": 'XRGB8888', "size": (320, 240)})
             self._picam2.configure(config)
         except Exception as e:
-            logger.exception()
+            logger.exception("An error occured!")
     
     def start(self):
         try:
             self._picam2.start()
         except Exception as e:
-            logger.exception()
+            logger.exception("An error occured!")
     
     def result(self, *, show = False):
         try:
@@ -218,7 +218,7 @@ class Camera:
 
             return camera_order
         except Exception as e:
-            logger.exception()
+            logger.exception("An error occured!")
     
 
 if __name__ == '__main__':

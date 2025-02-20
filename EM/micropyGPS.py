@@ -648,7 +648,7 @@ class MicropyGPS(object):
             # Tell Host no new sentence was parsed
             return None
         except Exception as e:
-            logger.exception()
+            logger.exception("An error occured!")
 
     def new_fix_time(self):
         """Updates a high resolution counter with current time when fix is updated. Currently only triggered from
@@ -835,7 +835,7 @@ class MicropyGPS(object):
             logger.log('gnss_time', f'{century}{year}-{month}-{day}T{self.timestamp[0]}:{self.timestamp[1]}:{self.timestamp[2]}Z')  # 測定値を記録
             return date_string
         except Exception as e:
-            logger.exception()
+            logger.exception("An error occured!")
 
     # All the currently supported NMEA sentences
     supported_sentences = {'GPRMC': gprmc, 'GLRMC': gprmc,

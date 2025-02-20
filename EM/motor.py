@@ -85,7 +85,7 @@ class MotorChannel(object):
                     self._apply_duty()
                     time.sleep(self.delta_time)
         except Exception as e:
-            logger.exception()
+            logger.exception("An error occured!")
 
 class Motor(object):
     # 各モーターはMotorChannelで管理
@@ -105,7 +105,7 @@ class Motor(object):
             self.right_motor.update(1, 0)
             self.left_motor.update(1, 0)
         except Exception as e:
-            logger.exception()
+            logger.exception("An error occured!")
 
     def stop(self):
         # 惰性ブレーキ
@@ -113,7 +113,7 @@ class Motor(object):
             self.right_motor.update(0, 0)
             self.left_motor.update(0, 0)
         except Exception as e:
-            logger.exception()
+            logger.exception("An error occured!")
 
     def brake(self):
         # 短絡ブレーキ(モーターには負荷)
@@ -129,7 +129,7 @@ class Motor(object):
             self.left_motor.current_duty = 0
             self.left_motor.current_direction = 0
         except Exception as e:
-            logger.exception()
+            logger.exception("An error occured!")
 
     def leftturn(self):
         # 左回転(右を向く)
@@ -137,7 +137,7 @@ class Motor(object):
             self.right_motor.update(0, 1)
             self.left_motor.update(1, 0)
         except Exception as e:
-            logger.exception()
+            logger.exception("An error occured!")
 
     def rightturn(self):
         # 右回転(左を向く)
@@ -145,7 +145,7 @@ class Motor(object):
             self.right_motor.update(1, 0)
             self.left_motor.update(0, 1)
         except Exception as e:
-            logger.exception()
+            logger.exception("An error occured!")
 
     def back(self):
         # 後ろ
@@ -153,13 +153,13 @@ class Motor(object):
             self.right_motor.update(0, 1)
             self.left_motor.update(0, 1)
         except Exception as e:
-            logger.exception()
+            logger.exception("An error occured!")
 
     def cleanup(self):
         try:
             self.pi.stop()
         except Exception as e:
-            logger.exception()
+            logger.exception("An error occured!")
 
 def main():
     motor = Motor(right_pin1=20, right_pin2=21, left_pin1=5, left_pin2=7)

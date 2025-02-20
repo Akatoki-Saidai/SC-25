@@ -672,7 +672,7 @@ class BNO055(object):
             heading, roll, pitch = self._read_vector(BNO055_EULER_H_LSB_ADDR)
             return (heading/16.0, roll/16.0, pitch/16.0)
         except Exception as e:
-            logger.exception()
+            logger.exception("An error occured!")
 
     def read_magnetometer(self):
         try:
@@ -682,7 +682,7 @@ class BNO055(object):
             x, y, z = self._read_vector(BNO055_MAG_DATA_X_LSB_ADDR)
             return (x/16.0, y/16.0, z/16.0)
         except Exception as e:
-            logger.exception()
+            logger.exception("An error occured!")
 
     def read_gyroscope(self):
         try:
@@ -692,7 +692,7 @@ class BNO055(object):
             x, y, z = self._read_vector(BNO055_GYRO_DATA_X_LSB_ADDR)
             return (x/900.0, y/900.0, z/900.0)
         except Exception as e:
-            logger.exception()
+            logger.exception("An error occured!")
 
     def read_accelerometer(self):
         try:
@@ -702,7 +702,7 @@ class BNO055(object):
             x, y, z = self._read_vector(BNO055_ACCEL_DATA_X_LSB_ADDR)
             return (x/100.0, y/100.0, z/100.0)
         except Exception as e:
-            logger.exception()
+            logger.exception("An error occured!")
 
     def read_linear_acceleration(self):
         try:
@@ -712,7 +712,7 @@ class BNO055(object):
             x, y, z = self._read_vector(BNO055_LINEAR_ACCEL_DATA_X_LSB_ADDR)
             return (x/100.0, y/100.0, z/100.0)
         except Exception as e:
-            logger.exception()
+            logger.exception("An error occured!")
 
     def read_gravity(self):
         try:
@@ -722,7 +722,7 @@ class BNO055(object):
             x, y, z = self._read_vector(BNO055_GRAVITY_DATA_X_LSB_ADDR)
             return (x/100.0, y/100.0, z/100.0)
         except Exception as e:
-            logger.exception()
+            logger.exception("An error occured!")
 
     def read_quaternion(self):
         try:
@@ -734,14 +734,14 @@ class BNO055(object):
             scale = (1.0 / (1<<14))
             return (x*scale, y*scale, z*scale, w*scale)
         except Exception as e:
-            logger.exception()
+            logger.exception("An error occured!")
 
     def read_temp(self):
         try:
             """Return the current temperature in Celsius."""
             return self._read_signed_byte(BNO055_TEMP_ADDR)
         except Exception as e:
-            logger.exception()
+            logger.exception("An error occured!")
     
 def main():
         

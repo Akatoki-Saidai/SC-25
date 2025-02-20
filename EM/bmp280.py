@@ -23,7 +23,7 @@ class BMP280:
         try:
             bus.write_byte_data(i2c_address,reg_address,data)
         except Exception as e:
-            logger.exception()
+            logger.exception("An error occured!")
 
     def get_calib_param(self):
         try:
@@ -66,7 +66,7 @@ class BMP280:
                 if digH[i] & 0x8000:
                     digH[i] = (-digH[i] ^ 0xFFFF) + 1  
         except Exception as e:
-            logger.exception()
+            logger.exception("An error occured!")
 
     def readData(self):
         try:
@@ -86,7 +86,7 @@ class BMP280:
 
             return temperature, pressure
         except Exception as e:
-            logger.exception()
+            logger.exception("An error occured!")
 
     def compensate_P(self, adc_P):
         try:
@@ -114,7 +114,7 @@ class BMP280:
             # logger.info("pressure : {:7.2f} hPa".format(pressure/100))
             return pressure
         except Exception as e:
-            logger.exception()
+            logger.exception("An error occured!")
 
     def compensate_T(self, adc_T):
         try:
@@ -127,7 +127,7 @@ class BMP280:
             # logger.info("temp : {:6.2f} ℃".format(temperature/100))
             return temperature
         except Exception as e:
-            logger.exception()
+            logger.exception("An error occured!")
 
     def setup(self):
         try:
@@ -151,7 +151,7 @@ class BMP280:
             for i in range(10):
                 self.readData()
         except Exception as e:
-            logger.exception()
+            logger.exception("An error occured!")
     
     def __init__(self):
         # モジュール読み込み時に自動実行
@@ -175,7 +175,7 @@ class BMP280:
             
             return altitude
         except Exception as e:
-            logger.exception()
+            logger.exception("An error occured!")
     
     def get_baseline(self):
         try:
@@ -190,7 +190,7 @@ class BMP280:
         
             return baseline
         except Exception as e:
-            logger.exception()
+            logger.exception("An error occured!")
 
 
 if __name__ == '__main__':
