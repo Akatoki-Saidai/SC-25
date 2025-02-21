@@ -45,7 +45,7 @@ def setup(devices):
 
 # 待機フェーズ
 def wait_phase(devices, data):
-    logger.info("Entered waiting phase")
+    logger.info("Entered wait phase")
     data["phase"] = "wait"
     # 高度が高くなるまで待つ
     while True:
@@ -56,19 +56,23 @@ def wait_phase(devices, data):
 
 # 落下フェーズ
 def fall_phase(devices, data):
-    pass
+    logger.info("Entered fall phase")
+    data["phase"] = "fall"
 
 # 遠距離フェーズ
 def long_phase(devices, data):
-    pass
+    logger.info("Entered long phase")
+    data["phase"] = "long"
 
 # 近距離フェーズ
 def short_phase(devices, data):
-    pass
+    logger.info("Entered short phase")
+    data["phase"] = "short"
 
 # ゴールフェーズ
 def goal_phase(devices, data):
-    pass
+    logger.info("Entered goal phase")
+    data["phase"] = "goal"
 
 def main():
     # 使用するデバイス  変数の中身をこの後変更する
@@ -82,7 +86,7 @@ def main():
         "speaker": None
     }
 
-    # 各デバイスのセットアップ  devicesの中に各デバイスのインスタンスを入れる
+    # 各デバイスのセットアップ  devicesの中に各デバイスの変数を入れる
     setup(devices)
 
     # 取得したデータ  新たなデータを取得し次第，中身を更新する
