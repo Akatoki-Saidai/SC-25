@@ -197,6 +197,15 @@ class BMP280:
             return altitude
         except Exception as e:
             logger.exception("An error occured!")
+    
+    # 永遠に高度を測定し続ける
+    def get_altitude_forever(self, data):
+        while True:
+            try:
+                data["alt"] = self.get_altitude()
+                time.sleep(0.1)
+            except Exception as e:
+                logger.exception("An error occured!")
 
 
 if __name__ == '__main__':
