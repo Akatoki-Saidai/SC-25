@@ -8,6 +8,7 @@ from gnss import GNSS
 # from sg90 import SG90
 import sc_logging
 from motor import Motor
+import speaker
 
 logger = sc_logging.get_logger(__name__)
 
@@ -35,7 +36,7 @@ def setup(devices):
         # devices["servo"] = SG90(pin=26, min_angle=-90, max_angle=90, ini_angle=0, freq=50)
 
         # スピーカーのセットアップ
-        # 保留
+        # 不要
 
 
     except Exception as e:
@@ -81,8 +82,7 @@ def main():
         "camera": None,
         "gnss": None,
         "motor": None,
-        "servo": None,
-        "speaker": None
+        "servo": None
     }
 
     # 各デバイスのセットアップ  devicesの中に各デバイスの変数を入れる
