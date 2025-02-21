@@ -15,7 +15,7 @@ class GNSS:
             # for sentence in sentence_list[-11:-2]:
             for x in sentence:
                 if 10 <= ord(x) <= 126:
-                    #print("5")
+                    print(x)
                     stat = self._pygps.update(chr(x))
                     if stat:
                         print(self._pygps.latitude[0],self._pygps.longitude[0] )
