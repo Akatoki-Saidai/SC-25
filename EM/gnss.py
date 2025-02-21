@@ -9,14 +9,11 @@ logger = sc_logging.get_logger(__name__)
 class GNSS:
     def _update(self):
         while True:
-            sentence = self._uart.read(self._uart.in_waiting).decode('utf-8')
-            # print(sentence_all)
-            # sentence_list = sentence_all.split('\n')
-            # for sentence in sentence_list[-11:-2]:
-            for x in sentence:
-                if 10 <= ord(x) <= 126:
-                    print(x, end="")
-                    self._pygps.update(x)
+            read_str = self._uart.read(self._uart.in_waiting).decode('utf-8')
+            for read_char in read_str:
+                if 10 <= ord(read_char) <= 126:
+                    print(read_char, end="")
+                    self._pygps.update(read_char)
 
     def __init__(self):
         self._uart = serial.Serial('/dev/serial0', 38400, timeout = 10)
