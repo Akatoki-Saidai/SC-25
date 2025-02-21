@@ -114,4 +114,5 @@ def main():
     goal_thread.start()  # ゴールフェーズを開始する
     goal_thread.join()  # ゴールフェーズが終わるまで待機
 
-    
+if __name__ == "__main__":
+    main()
