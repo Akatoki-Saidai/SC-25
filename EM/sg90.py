@@ -24,7 +24,7 @@ class SG90:
         ini_angle: 初期設定角度
         pi: gpio制御
     """
-    def __init__(self, pin=18, min_angle=-90, max_angle=90, ini_angle=0,freq=50):
+    def __init__(self, pin=18, min_angle=0, max_angle=180, ini_angle=0,freq=50):
         self.pin = pin
         self.max_angle = max_angle
         self.min_angle = min_angle
@@ -47,7 +47,7 @@ class SG90:
             print(f"角度は{self.min_angle}から{self.max_angle}度の間で指定してください。")
             return
         #角度[degree]→パルス幅[μs]に変換
-        pulse_width = ((target_angle+90.0)/180.0)*1900.0+500.0
+        pulse_width = ((target_angle)/180.0)*1900.0+500.0
         self.angle = target_angle
         #duty比[%]を計算(周期：20ms=20000μs)
         pwm_duty = 100.0*(pulse_width/20000.0)
@@ -79,7 +79,7 @@ if __name__ == "__main__":
     """
     
     #これサンプルコードだから0~180のangle採用してる。書き換える必要あり。
-    sg90 = SG90( pin=18, min_angle=-70, max_angle=70, ini_angle=0,freq=50)
+    sg90 = SG90( pin=18, min_angle=20, max_angle=160, ini_angle=0,freq=50)
 
     # サーボ動作開始
     sg90.start()
