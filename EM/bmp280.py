@@ -155,30 +155,6 @@ class BMP280:
         except Exception as e:
             logger.exception("An error occured!")
     
-    def __init__(self):
-        # モジュール読み込み時に自動実行
-        self.setup()
-        self.get_calib_param()
-
-    def get_altitude(self, qnh=1013.25, manual_temperature=None):
-        try:
-            # qnh = pressure at sea level where the readings are being taken.
-            # The temperature should be the outdoor temperature.
-            # Use the manual_temperature variable if temperature adjustments are required.
-            temperature, pressure = self.readData()
-            if manual_temperature is not None:
-                temperature = manual_temperature
-            
-            # 気圧と温度を使った算出
-            altitude = ((pow((qnh / pressure), (1.0 / 5.257)) - 1) * (temperature + 273.15)) / 0.0065
-            
-            # 気圧のみの算出
-            # altitude = (((1 - (pow((pressure / qnh), 0.190284))) * 145366.45) / 0.3048 ) / 10
-            
-            return altitude
-        except Exception as e:
-            logger.exception("An error occured!")
-    
     def get_baseline(self):
         try:
             baseline_values = []
@@ -191,6 +167,34 @@ class BMP280:
             baseline = sum(baseline_values[:-80]) / len(baseline_values[:-80])
         
             return baseline
+        except Exception as e:
+            logger.exception("An error occured!")
+    
+    def __init__(self):
+        # モジュール読み込み時に自動実行
+        self.setup()  # 測定方法や補正方法を設定
+        self.get_calib_param()  # 補正パラメータの読み取りと保存
+        self.qnh = self.get_baseline()  # 高度0m地点の気圧を保存
+
+    def get_altitude(self, qnh=1013.25, manual_temperature=None):
+        try:
+            # qnh = pressure at sea level where the readings are being taken.
+            # The temperature should be the outdoor temperature.
+            # Use the manual_temperature variable if temperature adjustments are required.
+            temperature, pressure = self.readData()
+            if manual_temperature is not None:
+                temperature = manual_temperature
+            
+            if self.qnh:
+                qnh = self.qnh
+            
+            # 気圧と温度を使った算出
+            # altitude = ((pow((qnh / pressure), (1.0 / 5.257)) - 1) * (temperature + 273.15)) / 0.0065
+            
+            # 気圧のみの算出
+            altitude = (((1 - (pow((pressure / qnh), 0.190284))) * 145366.45) / 0.3048 ) / 10
+            
+            return altitude
         except Exception as e:
             logger.exception("An error occured!")
 
