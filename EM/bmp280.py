@@ -7,7 +7,7 @@ from smbus2 import SMBus
 import time
 import sc_logging
 
-logger = sc_logging.getLogger(__name__)
+logger = sc_logging.get_logger(__name__)
 
 bus_number  = 1
 i2c_address = 0x76

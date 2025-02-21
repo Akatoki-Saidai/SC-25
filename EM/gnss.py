@@ -3,7 +3,7 @@ import serial
 from micropyGPS import MicropyGPS
 import sc_logging
 
-logger = sc_logging.getLogger(__name__)
+logger = sc_logging.get_logger(__name__)
 
 def main():
     #print("1")

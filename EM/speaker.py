@@ -4,7 +4,7 @@ import subprocess
 import time
 import sc_logging
 
-logger = sc_logging.getLogger(__name__)
+logger = sc_logging.get_logger(__name__)
 
 class C():
     def poll(self):

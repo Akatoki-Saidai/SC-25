@@ -3,7 +3,7 @@ from logging import getLogger, StreamHandler, Formatter, Logger, DEBUG, INFO, WA
 from logging.handlers import RotatingFileHandler
 import os
 
-def getLogger(name: str):
+def get_logger(name: str):
     # logger = getLogger(os.path.basename(os.getcwd()))
     logger = getLogger(name)
     logger.setLevel(DEBUG)  # 全ログデータの記録するレベル(DEBUG以上など)
@@ -23,7 +23,7 @@ def getLogger(name: str):
     return logger
 
 if __name__ == "__main__":
-    logger = getLogger(__name__)
+    logger = get_logger(__name__)
     logger.debug("これはデバッグ時専用のメッセージです")
     logger.info("これはINFOです")
     logger.warning("これは警告です")

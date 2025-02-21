@@ -209,7 +209,7 @@ OPERATION_MODE_NDOF_FMC_OFF          = 0X0B
 OPERATION_MODE_NDOF                  = 0X0C
 
 
-logger = sc_logging.getLogger(__name__)
+logger = sc_logging.get_logger(__name__)
 
 
 class BNO055(object):

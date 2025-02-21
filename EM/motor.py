@@ -2,7 +2,7 @@ import pigpio
 import time
 import sc_logging
 
-logger = sc_logging.getLogger(__name__)
+logger = sc_logging.get_logger(__name__)
 
 class MotorChannel(object):
     # 1つのモーターの制御クラス

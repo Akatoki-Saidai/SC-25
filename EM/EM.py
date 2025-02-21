@@ -8,7 +8,7 @@ import sc_logging
 from micropyGPS import MicropyGPS
 from motor import Motor
 
-logger = sc_logging.getLogger(__name__)
+logger = sc_logging.get_logger(__name__)
 
 # 各デバイスのセットアップ devices引数の中身を変更します
 def setup(devices):
