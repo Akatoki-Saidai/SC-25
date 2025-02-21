@@ -2,6 +2,7 @@
 
 import subprocess
 import time
+import os
 import sc_logging
 
 logger = sc_logging.get_logger(__name__)
@@ -16,7 +17,7 @@ def audio_play(audio_path):
     try:
         global proces_aplay
         # logger.log('Music play')
-        if (proces_aplay.poll() != None):
+        if (proces_aplay.poll() != None and os.path.exists(audio_path)):
             proces_aplay = subprocess.Popen(f"aplay --device=hw:1,0 {audio_path}", shell=True)
 
             logger.log("Play music")
