@@ -201,7 +201,7 @@ class BMP280:
     def get_forever(self, data):
         while True:
             try:
-                read_temperature, read_pressure = self.read()
+                read_temperature, read_pressure = self.readData()
                 data["temp"], data["press"] = read_temperature, read_pressure
                 data["alt"] = self.get_altitude(temperature=read_temperature, pressure=read_pressure)
                 time.sleep(0.2)
