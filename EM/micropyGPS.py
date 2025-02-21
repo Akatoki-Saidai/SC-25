@@ -117,7 +117,7 @@ class MicropyGPS(object):
             # if decimal_degrees == 0:
             #     raise(ValueError(f'latitude is abnormal: {decimal_degrees}'))
             
-            logger.info('lat', decimal_degrees)  # 測地値を記録
+            logger.info(f'lat: {decimal_degrees}')  # 測地値を記録
             return [decimal_degrees, self._latitude[2]]
         elif self.coord_format == 'dms':
             minute_parts = modf(self._latitude[1])
@@ -136,7 +136,7 @@ class MicropyGPS(object):
             # if decimal_degrees == 0:
             #     raise(ValueError(f'longitude is abnormal: {decimal_degrees}'))
             
-            logger.info('lon', decimal_degrees)  # 測地値を記録
+            logger.info(f'lon: {decimal_degrees}')  # 測地値を記録
             return [decimal_degrees, self._longitude[2]]
         elif self.coord_format == 'dms':
             minute_parts = modf(self._longitude[1])
@@ -833,7 +833,7 @@ class MicropyGPS(object):
                 else:  # Default date format
                     date_string = month + '/' + day + '/' + year
 
-            logger.log('gnss_time', f'{century}{year}-{month}-{day}T{self.timestamp[0]}:{self.timestamp[1]}:{self.timestamp[2]}Z')  # 測定値を記録
+            logger.log(f'gnss_time: {century}{year}-{month}-{day}T{self.timestamp[0]}:{self.timestamp[1]}:{self.timestamp[2]}Z')  # 測定値を記録
             return date_string
         except Exception as e:
             logger.exception("An error occured!")
