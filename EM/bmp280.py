@@ -148,7 +148,7 @@ class BMP280:
             baseline_size = 100
 
             for i in range(baseline_size):
-                _, pressure = self.get_temp_pres()
+                _, pressure = self.self.readData()
                 baseline_values.append(pressure)
                 time.sleep(0.1)
             baseline = sum(baseline_values[:-80]) / len(baseline_values[:-80])
