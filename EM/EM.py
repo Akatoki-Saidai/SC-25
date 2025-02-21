@@ -99,16 +99,16 @@ def main():
     # 待機フェーズを実行
     wait_phase(devices, data)
 
-    # 並列処理で落下フェーズを実行
+    # 落下フェーズを実行
     fall_phase(devices, data)
 
-    # 並列処理で遠距離フェーズを実行
+    # 遠距離フェーズを実行
     long_phase(devices, data)
 
-    # 並列処理で短距離フェーズを実行
+    # 短距離フェーズを実行
     short_phase(devices, data)
 
-    # 並列処理でゴールフェーズを実行
+    # ゴールフェーズを実行
     goal_phase(devices, data)
 
 if __name__ == "__main__":
