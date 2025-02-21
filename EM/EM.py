@@ -44,6 +44,7 @@ def setup(devices):
 
 # 待機フェーズ
 def wait_phase(devices, data):
+    logger.info("Entered waiting phase")
     data["phase"] = "wait"
     # 高度を並行処理で測定し続け，dataに代入し続ける
     get_alt_thread = Thread(target=devices["bmp"].get_altitude_forever, args=(data,), daemon=True)
