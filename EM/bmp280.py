@@ -194,7 +194,7 @@ class BMP280:
             # 気圧のみの算出
             altitude = (((1 - (pow((pressure / qnh), 0.190284))) * 145366.45) / 0.3048 ) / 10
             
-            logger.debug("altitude: ", altitude)
+            logger.debug(f"altitude: {altitude}")
             return altitude
         except Exception as e:
             logger.exception("An error occured!")
