@@ -47,16 +47,11 @@ def setup(devices):
 def wait_phase(devices, data):
     logger.info("Entered waiting phase")
     data["phase"] = "wait"
-    event = threading.Event()
-    # イベントがTrueになるまで，高度を並行処理で測定し続け，dataに代入し続ける
-    get_alt_thread = threading.Thread(target=devices["bmp"].get_altitude_until_event, args=(event, data,))
-    get_alt_thread.start()  # 高度の測定スタート
     # 高度が高くなるまで待つ
     while True:
         time.sleep(0.1)
         # 高度が十分高かったら，待機フェーズを終了
         if 20 < data["alt"]:
-            event.set()  # イベントがTrueにして，高度の測定を止める
             break
 
 # 落下フェーズ
@@ -91,7 +86,15 @@ def main():
     setup(devices)
 
     # 取得したデータ  新たなデータを取得し次第，中身を更新する
-    data = {"phase": None, "lat": None, "lon": None, "alt": None, "temp": None, "press": None, "camera_order": None, "accel": [None, None, None], "mag": [None, None, None], "gyro": [None, None, None]}
+    data = {"phase": None, "lat": None, "lon": None, "alt": None, "temp": None, "press": None, "camera_order": None, "accel": [None, None, None], "line_accel": [None, None, None], "mag": [None, None, None], "gyro": [None, None, None], "grav": [None, None, None]}
+
+    # 並行処理でBMP280による測定をし続け，dataに代入し続ける
+    get_bmp_thread = threading.Thread(target=devices["bmp"].get_forever, args=(data,))
+    get_bmp_thread.start()  # BMP280による測定をスタート
+    
+    # 並行処理でBNO055による測定をし続け，dataに代入し続ける
+    get_bno_thread = threading.Thread(target=devices["bno"].get_forever, args=(data,))
+    get_bno_thread.start()  # BNO055による測定をスタート
 
     # 待機フェーズを実行
     wait_phase(devices, data)

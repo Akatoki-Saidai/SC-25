@@ -172,14 +172,16 @@ class BMP280:
         self.get_calib_param()  # 補正パラメータの読み取りと保存
         self.qnh = self.get_baseline()  # 高度0m地点の気圧を保存
 
-    def get_altitude(self, qnh=1013.25, manual_temperature=None):
+    def get_altitude(self, *, qnh=1013.25, temperature=None, pressure=None):
         try:
-            # qnh = pressure at sea level where the readings are being taken.
-            # The temperature should be the outdoor temperature.
-            # Use the manual_temperature variable if temperature adjustments are required.
-            temperature, pressure = self.readData()
-            if manual_temperature is not None:
-                temperature = manual_temperature
+            # qnh = 高度0m地点の気圧.
+
+            if temperature is None or pressure is None:
+                read_temperature, read_pressure = self.readData()
+                if temperature is None:
+                    temperature = read_temperature
+                if pressure is None:
+                    pressure = read_pressure
             
             if self.qnh:
                 qnh = self.qnh
@@ -195,12 +197,14 @@ class BMP280:
         except Exception as e:
             logger.exception("An error occured!")
     
-    # eventがfalseの間，高度を測定し続ける
-    def get_altitude_until_event(self, event, data):
-        while event.is_set() == False:
+    # 永遠に測定し続ける
+    def get_forever(self, data):
+        while True:
             try:
-                data["alt"] = self.get_altitude()
-                time.sleep(0.1)
+                read_temperature, read_pressure = self.read()
+                data["temp"], data["press"] = read_temperature, read_pressure
+                data["alt"] = self.get_altitude(temperature=read_temperature, pressure=read_pressure)
+                time.sleep(0.2)
             except Exception as e:
                 logger.exception("An error occured!")
 

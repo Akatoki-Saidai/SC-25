@@ -743,6 +743,21 @@ class BNO055(object):
         except Exception as e:
             logger.exception("An error occured!")
     
+    # 永遠に測定し続ける
+    def get_forever(self, data):
+        while True:
+            try:
+                # self.read_euler()
+                data["mag"][0], data["mag"][1], data["mag"][2] = self.read_magnetometer()
+                data["gyro"][0], data["gyro"][1], data["gyro"][2] = self.read_gyroscope()
+                data["accel"][0], data["accel"][1], data["accel"][2] = self.read_accelerometer()
+                data["line_accel"][0], data["line_accel"][1], data["line_accel"][2] = self.read_linear_acceleration()
+                data["grav"][0], data["grav"][1], data["grav"][2] = self.read_gravity()
+                # self.read_quaternion()
+                # self.read_temp()
+            except Exception as e:
+                logger.exception("An error occured!")
+    
 def main():
         
     try:
