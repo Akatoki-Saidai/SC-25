@@ -24,10 +24,7 @@ class SG90:
         ini_angle: 初期設定角度
         pi: gpio制御
     """
-    def __init__(self, pin=18, min_angle=-90, max_angle=90, ini_angle=0,freq=50) -> None:
-        """
-        サーボモータを制御するクラス
-        """
+    def __init__(self, pin=18, min_angle=-90, max_angle=90, ini_angle=0,freq=50):
         self.pin = pin
         self.max_angle = max_angle
         self.min_angle = min_angle
@@ -36,37 +33,31 @@ class SG90:
         self.pi = None
         self.freq = freq
 
-    def start(self) -> None:
-        """
-        GPIOの開始処理
-        """
+    def start(self):
         self.pi = pigpio.pi()
         self.pi.set_mode(self.pin, pigpio.OUTPUT)
 
-    def stop(self) -> None:
-        """
-        GPIOの終了処理
-        """
+    def stop(self):
         self.pi.set_mode(self.pin, pigpio.INPUT)
         self.pi.stop()
 
     #set_servo_pulsewidthを使わない方法(案)
-    def set_angle(self,target_angle: int) ->None:
+    def set_angle(self,target_angle):
         if target_angle < self.min_angle or target_angle > self.max_angle:
             print(f"角度は{self.min_angle}から{self.max_angle}度の間で指定してください。")
             return
         #角度[degree]→パルス幅[μs]に変換
-        pulse_width = ((target_angle+self.max_angle) / self.min_angle+self.max_angle) * (2250 - 750) + 750
+        pulse_width = ((target_angle+90.0)/180.0)*1900.0+500.0
         self.angle = target_angle
         #duty比[%]を計算(周期：20ms=20000μs)
-        pwm_duty = 100*(pulse_width/20000)
+        pwm_duty = 100.0*(pulse_width/20000.0)
         #duty比をhardware_PWMに使える形に変換(1,000,000を100%と考えて数値を指定するらしい.整数で表したいとかなんとか.)
         duty_cycle = int(pwm_duty* 1000000 / 100)
         frequency = int(self.freq)
         #PWM出力
         self.pi.hardware_PWM(self.pin,frequency,duty_cycle)
     
-    def set_ini_angle(self) ->None:
+    def set_ini_angle(self):
         self.set_angle(self.ini_angle)
     
     
