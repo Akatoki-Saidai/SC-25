@@ -21,9 +21,9 @@ def main():
         for sentence in sentence_list[-11:-2]:
             #print("4")
             for x in sentence:
-                if 10 <= x <= 126:
+                if 10 <= ord(x) <= 126:
                     #print("5")
-                    stat = my_gps.update(chr(x))
+                    stat = my_gps.update(x)
                     #print("stat:",stat,"x:",x,"chr:",chr(x))
                     #print(chr(x))
                     if stat:
