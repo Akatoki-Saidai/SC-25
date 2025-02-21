@@ -9,21 +9,10 @@ import sc_logging
 
 logger = sc_logging.get_logger(__name__)
 
-bus_number  = 1
-i2c_address = 0x76
-
-bus = SMBus(bus_number)
-
-digT = []
-digP = []
-digH = []
-
-t_fine = 0.0
-
 class BMP280:
     def writeReg(self, reg_address, data):
         try:
-            bus.write_byte_data(i2c_address,reg_address,data)
+            self.bus.write_byte_data(self.i2c_address,reg_address,data)
         except Exception as e:
             logger.exception("An error occured!")
 
@@ -32,41 +21,41 @@ class BMP280:
             calib = []
         
             for i in range (0x88,0x88+24):
-                calib.append(bus.read_byte_data(i2c_address,i))
-            calib.append(bus.read_byte_data(i2c_address,0xA1))
+                calib.append(self.bus.read_byte_data(self.i2c_address,i))
+            calib.append(self.bus.read_byte_data(self.i2c_address,0xA1))
             for i in range (0xE1,0xE1+7):
-                calib.append(bus.read_byte_data(i2c_address,i))
+                calib.append(self.bus.read_byte_data(self.i2c_address,i))
 
-            digT.append((calib[1] << 8) | calib[0])
-            digT.append((calib[3] << 8) | calib[2])
-            digT.append((calib[5] << 8) | calib[4])
-            digP.append((calib[7] << 8) | calib[6])
-            digP.append((calib[9] << 8) | calib[8])
-            digP.append((calib[11]<< 8) | calib[10])
-            digP.append((calib[13]<< 8) | calib[12])
-            digP.append((calib[15]<< 8) | calib[14])
-            digP.append((calib[17]<< 8) | calib[16])
-            digP.append((calib[19]<< 8) | calib[18])
-            digP.append((calib[21]<< 8) | calib[20])
-            digP.append((calib[23]<< 8) | calib[22])
-            digH.append( calib[24] )
-            digH.append((calib[26]<< 8) | calib[25])
-            digH.append( calib[27] )
-            digH.append((calib[28]<< 4) | (0x0F & calib[29]))
-            digH.append((calib[30]<< 4) | ((calib[29] >> 4) & 0x0F))
-            digH.append( calib[31] )
+            self.digT[0]((calib[1] << 8) | calib[0])
+            self.digT[1]((calib[3] << 8) | calib[2])
+            self.digT[2]((calib[5] << 8) | calib[4])
+            self.digP[0]((calib[7] << 8) | calib[6])
+            self.digP[1]((calib[9] << 8) | calib[8])
+            self.digP[2]((calib[11]<< 8) | calib[10])
+            self.digP[3]((calib[13]<< 8) | calib[12])
+            self.digP[4]((calib[15]<< 8) | calib[14])
+            self.digP[5]((calib[17]<< 8) | calib[16])
+            self.digP[6]((calib[19]<< 8) | calib[18])
+            self.digP[7]((calib[21]<< 8) | calib[20])
+            self.digP[8]((calib[23]<< 8) | calib[22])
+            self.digH[9]( calib[24] )
+            self.digH[0]((calib[26]<< 8) | calib[25])
+            self.digH[1]( calib[27] )
+            self.digH[2]((calib[28]<< 4) | (0x0F & calib[29]))
+            self.digH[3]((calib[30]<< 4) | ((calib[29] >> 4) & 0x0F))
+            self.digH[4]( calib[31] )
             
             for i in range(1,2):
-                if digT[i] & 0x8000:
-                    digT[i] = (-digT[i] ^ 0xFFFF) + 1
+                if self.digT[i] & 0x8000:
+                    self.digT[i] = (-self.digT[i] ^ 0xFFFF) + 1
 
             for i in range(1,8):
-                if digP[i] & 0x8000:
-                    digP[i] = (-digP[i] ^ 0xFFFF) + 1
+                if self.digP[i] & 0x8000:
+                    self.digP[i] = (-self.digP[i] ^ 0xFFFF) + 1
 
             for i in range(0,6):
-                if digH[i] & 0x8000:
-                    digH[i] = (-digH[i] ^ 0xFFFF) + 1  
+                if self.digH[i] & 0x8000:
+                    self.digH[i] = (-self.digH[i] ^ 0xFFFF) + 1  
         except Exception as e:
             logger.exception("An error occured!")
 
@@ -74,7 +63,7 @@ class BMP280:
         try:
             data = []
             for i in range (0xF7, 0xF7+8):
-                data.append(bus.read_byte_data(i2c_address,i))
+                data.append(self.bus.read_byte_data(self.i2c_address,i))
             pres_raw = (data[0] << 12) | (data[1] << 4) | (data[2] >> 4)
             temp_raw = (data[3] << 12) | (data[4] << 4) | (data[5] >> 4)
             # hum_raw  = (data[6] << 8)  |  data[7]
@@ -92,15 +81,14 @@ class BMP280:
 
     def compensate_P(self, adc_P):
         try:
-            global  t_fine
             pressure = 0.0
             
-            v1 = (t_fine / 2.0) - 64000.0
-            v2 = (((v1 / 4.0) * (v1 / 4.0)) / 2048) * digP[5]
-            v2 = v2 + ((v1 * digP[4]) * 2.0)
-            v2 = (v2 / 4.0) + (digP[3] * 65536.0)
-            v1 = (((digP[2] * (((v1 / 4.0) * (v1 / 4.0)) / 8192)) / 8)  + ((digP[1] * v1) / 2.0)) / 262144
-            v1 = ((32768 + v1) * digP[0]) / 32768
+            v1 = (self.t_fine / 2.0) - 64000.0
+            v2 = (((v1 / 4.0) * (v1 / 4.0)) / 2048) * self.digP[5]
+            v2 = v2 + ((v1 * self.digP[4]) * 2.0)
+            v2 = (v2 / 4.0) + (self.digP[3] * 65536.0)
+            v1 = (((self.digP[2] * (((v1 / 4.0) * (v1 / 4.0)) / 8192)) / 8)  + ((self.digP[1] * v1) / 2.0)) / 262144
+            v1 = ((32768 + v1) * self.digP[0]) / 32768
             
             if v1 == 0:
                 return 0
@@ -109,9 +97,9 @@ class BMP280:
                 pressure = (pressure * 2.0) / v1
             else:
                 pressure = (pressure / v1) * 2
-            v1 = (digP[8] * (((pressure / 8.0) * (pressure / 8.0)) / 8192.0)) / 4096
-            v2 = ((pressure / 4.0) * digP[7]) / 8192.0
-            pressure = pressure + ((v1 + v2 + digP[6]) / 16.0)  
+            v1 = (self.digP[8] * (((pressure / 8.0) * (pressure / 8.0)) / 8192.0)) / 4096
+            v2 = ((pressure / 4.0) * self.digP[7]) / 8192.0
+            pressure = pressure + ((v1 + v2 + self.digP[6]) / 16.0)  
 
             # logger.info("pressure : {:7.2f} hPa".format(pressure/100))
             return pressure
@@ -120,11 +108,10 @@ class BMP280:
 
     def compensate_T(self, adc_T):
         try:
-            global t_fine
-            v1 = (adc_T / 16384.0 - digT[0] / 1024.0) * digT[1]
-            v2 = (adc_T / 131072.0 - digT[0] / 8192.0) * (adc_T / 131072.0 - digT[0] / 8192.0) * digT[2]
-            t_fine = v1 + v2
-            temperature = t_fine / 5120.0
+            v1 = (adc_T / 16384.0 - self.digT[0] / 1024.0) * self.digT[1]
+            v2 = (adc_T / 131072.0 - self.digT[0] / 8192.0) * (adc_T / 131072.0 - self.digT[0] / 8192.0) * self.digT[2]
+            self.t_fine = v1 + v2
+            temperature = self.t_fine / 5120.0
 
             # logger.info("temp : {:6.2f} ℃".format(temperature/100))
             return temperature
@@ -172,6 +159,15 @@ class BMP280:
     
     def __init__(self):
         # モジュール読み込み時に自動実行
+
+        self.bus_number  = 1  # I2C1
+        self.i2c_address = 0x76  # BMP280のアドレス(注：メモリアドレスではない)
+        self.bus = SMBus(self.bus_number)
+        self.digT = [0, 0, 0]  # 温度の補正パラメータ
+        self.digP = [0, 0, 0, 0, 0, 0, 0, 0, 0]  # 気圧の補正パラメータ
+        self.digH = [0, 0, 0, 0, 0]  # 湿度の補正パラメータ(BME280の名残で書いてあるだけで，BMP280では不使用)
+        self.t_fine = 0.0
+
         self.setup()  # 測定方法や補正方法を設定
         self.get_calib_param()  # 補正パラメータの読み取りと保存
         self.qnh = self.get_baseline()  # 高度0m地点の気圧を保存
