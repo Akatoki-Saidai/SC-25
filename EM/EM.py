@@ -7,28 +7,28 @@ from motor import Motor
 
 logger = sc_logging.getLogger(__name__)
 
-def setup():
+def setup(devices):
     try:
         # BMPをセットアップ
-        bmp = BMP280()
+        devices["bmp"] = BMP280()
 
         # BNOをセットアップ
-        bno = BNO055()
-        if not bno.begin():
+        devices["bno"] = BNO055()
+        if not devices["bno"].begin():
             logger.critical('Failed to initialize BNO055! Is the sensor connected?')
         
         # カメラをセットアップ
         # 保留
 
         # GNSS (BE-180) をセットアップ
-        gnss = MicropyGPS(9, 'dd')
+        devices["gnss"] = MicropyGPS(9, 'dd')
         # ↑メモ　もう少しいじりたい
 
         # モーターをセットアップ
-        motor = Motor(right_pin1=20, right_pin2=21, left_pin1=5, left_pin2=7)
+        devices["motor"] = Motor(right_pin1=20, right_pin2=21, left_pin1=5, left_pin2=7)
 
         # サーボモーターのセットアップ
-        # servo = SG90(pin=26, min_angle=-90, max_angle=90, ini_angle=0, freq=50)
+        # devices["servo"] = SG90(pin=26, min_angle=-90, max_angle=90, ini_angle=0, freq=50)
 
         # スピーカーのセットアップ
         # 保留
@@ -36,3 +36,16 @@ def setup():
 
     except Exception as e:
         logger.exception("An error occured in setup")
+
+def main():
+    devices = {
+        "bmp": None,
+        "bno": None,
+        "camera": None,
+        "gnss": None,
+        "motor": None,
+        "servo": None,
+        "speaker": None
+    }
+
+    setup(devices)
