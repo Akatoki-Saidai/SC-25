@@ -2,8 +2,9 @@
 
 import subprocess
 import time
-from log import logger
+import sc_logging
 
+logger = sc_logging.getLogger(__name__)
 
 class C():
     def poll(self):

@@ -5,8 +5,9 @@ from ultralytics import YOLO
 import cv2
 import numpy as np
 from picamera2 import Picamera2 
-from log import logger
+import sc_logging
 
+logger = sc_logging.getLogger(__name__)
 
 # 同じディレクトリに重みを置く
 pt_path = "./SC-25_yolo_ver2.pt"

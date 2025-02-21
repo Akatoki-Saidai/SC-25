@@ -1,9 +1,11 @@
 from bmp280 import BMP280
 from bno055 import BNO055
 # from sg90 import SG90
-from log import logger
+import sc_logging
 from micropyGPS import MicropyGPS
 from motor import Motor
+
+logger = sc_logging.getLogger(__name__)
 
 def setup():
     try:

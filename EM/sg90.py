@@ -1,6 +1,8 @@
 import time
 from machine import Pin, PWM
-from log import logger
+import sc_logging
+
+logger = sc_logging.getLogger(__name__)
 
 class SG90:
     """

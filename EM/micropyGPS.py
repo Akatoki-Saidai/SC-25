@@ -23,8 +23,9 @@ except ImportError:
 
 
 # 測定値の出力用
-from log import logger
+import sc_logging
 
+logger = sc_logging.getLogger(__name__)
 
 class MicropyGPS(object):
     """GPS NMEA Sentence Parser. Creates object that stores all relevant GPS data and statistics.

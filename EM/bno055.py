@@ -26,7 +26,7 @@ import struct
 import time
 import pigpio
 import serial
-from log import logger
+import sc_logging
 
 
 # I2C addresses
@@ -209,7 +209,7 @@ OPERATION_MODE_NDOF_FMC_OFF          = 0X0B
 OPERATION_MODE_NDOF                  = 0X0C
 
 
-# logger = logging.getLogger(__name__)
+logger = sc_logging.getLogger(__name__)
 
 
 class BNO055(object):
