@@ -3,6 +3,7 @@ import time
 
 from bmp280 import BMP280
 from bno055 import BNO055
+from camera import Camera
 # from sg90 import SG90
 import sc_logging
 from micropyGPS import MicropyGPS
@@ -22,7 +23,7 @@ def setup(devices):
             logger.critical('Failed to initialize BNO055! Is the sensor connected?')
         
         # カメラをセットアップ
-        # 保留
+        devices["camera"] = Camera()
 
         # GNSS (BE-180) をセットアップ
         devices["gnss"] = MicropyGPS(9, 'dd')
