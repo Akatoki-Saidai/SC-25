@@ -17,7 +17,8 @@ class GNSS:
                 if 10 <= x <= 126:
                     #print("5")
                     stat = self._pygps.update(chr(x))
-            print(self._pygps.latitude[0],self._pygps.longitude[0] )
+                    if stat:
+                        print(self._pygps.latitude[0],self._pygps.longitude[0] )
 
     def __init__(self):
         self._uart = serial.Serial('/dev/serial0', 38400, timeout = 10)
