@@ -4,9 +4,9 @@ import time
 from bmp280 import BMP280
 from bno055 import BNO055
 from camera import Camera
+from gnss import GNSS
 # from sg90 import SG90
 import sc_logging
-from micropyGPS import MicropyGPS
 from motor import Motor
 
 logger = sc_logging.get_logger(__name__)
@@ -26,8 +26,7 @@ def setup(devices):
         devices["camera"] = Camera()
 
         # GNSS (BE-180) をセットアップ
-        devices["gnss"] = MicropyGPS(9, 'dd')
-        # ↑メモ　もう少しいじりたい
+        devices["gnss"] = GNSS()
 
         # モーターをセットアップ
         devices["motor"] = Motor(right_pin1=20, right_pin2=21, left_pin1=5, left_pin2=7)
@@ -99,6 +98,10 @@ def main():
     # 並行処理でBNO055による測定をし続け，dataに代入し続ける
     get_bno_thread = threading.Thread(target=devices["bno"].get_forever, args=(data,))
     get_bno_thread.start()  # BNO055による測定をスタート
+
+    # 並行処理でGNSSによる測定をし続け，dataに代入し続ける
+    get_gnss_thread = threading.Thread(target=devices["gnss"].get_forever, args=(data,))
+    get_gnss_thread.start()  # GNSSによる測定をスタート
 
     # 待機フェーズを実行
     wait_phase(devices, data)
