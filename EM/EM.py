@@ -52,11 +52,10 @@ def wait_phase(devices, data):
     get_alt_thread = threading.Thread(target=devices["bmp"].get_altitude_until_event, args=(event, data,))
     get_alt_thread.start()  # 高度の測定スタート
     # 高度が高くなるまで待つ
-    t = time.time()
     while True:
         time.sleep(0.1)
         # 高度が十分高かったら，待機フェーズを終了
-        if 20 < data["alt"] or 30<time.time()-t:
+        if 20 < data["alt"]:
             event.set()
             break
 
@@ -94,31 +93,20 @@ def main():
     # 取得したデータ  新たなデータを取得し次第，中身を更新する
     data = {"phase": None, "lat": None, "lon": None, "alt": None, "temp": None, "press": None, "camera_order": None, "accel": [None, None, None], "mag": [None, None, None], "gyro": [None, None, None]}
 
+    # 待機フェーズを実行
     wait_phase(devices, data)
-    # # 並列処理で待機フェーズを実行
-    # wait_thread = Thread(target=wait_phase, args=(devices, data,))
-    # wait_thread.start()  # 待機フェーズを開始する
-    # wait_thread.join()  # 待機フェーズが終わるまで待機
 
-    # # 並列処理で落下フェーズを実行
-    # fall_thread = Thread(target=fall_phase, args=(devices, data,))
-    # fall_thread.start()  # 落下フェーズを開始する
-    # fall_thread.join()  # 落下フェーズが終わるまで待機
+    # 並列処理で落下フェーズを実行
+    fall_phase(devices, data)
 
-    # # 並列処理で遠距離フェーズを実行
-    # long_thread = Thread(target=long_phase, args=(devices, data,))
-    # long_thread.start()  # 遠距離フェーズを開始する
-    # long_thread.join()  # 遠距離フェーズが終わるまで待機
+    # 並列処理で遠距離フェーズを実行
+    long_phase(devices, data)
 
-    # # 並列処理で短距離フェーズを実行
-    # short_thread = Thread(target=short_phase, args=(devices, data,))
-    # short_thread.start()  # 短距離フェーズを開始する
-    # short_thread.join()  # 短距離フェーズが終わるまで待機
+    # 並列処理で短距離フェーズを実行
+    short_phase(devices, data)
 
-    # # 並列処理でゴールフェーズを実行
-    # goal_thread = Thread(target=goal_phase, args=(devices, data,))
-    # goal_thread.start()  # ゴールフェーズを開始する
-    # goal_thread.join()  # ゴールフェーズが終わるまで待機
+    # 並列処理でゴールフェーズを実行
+    goal_phase(devices, data)
 
 if __name__ == "__main__":
     main()
