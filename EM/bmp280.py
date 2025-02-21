@@ -38,12 +38,12 @@ class BMP280:
             self.digP[6] = ((calib[19]<< 8) | calib[18])
             self.digP[7] = ((calib[21]<< 8) | calib[20])
             self.digP[8] = ((calib[23]<< 8) | calib[22])
-            self.digH[9] = ( calib[24] )
-            self.digH[0] = ((calib[26]<< 8) | calib[25])
-            self.digH[1] = ( calib[27] )
-            self.digH[2] = ((calib[28]<< 4) | (0x0F & calib[29]))
-            self.digH[3] = ((calib[30]<< 4) | ((calib[29] >> 4) & 0x0F))
-            self.digH[4] = ( calib[31] )
+            self.digH[0] = ( calib[24] )
+            self.digH[1] = ((calib[26]<< 8) | calib[25])
+            self.digH[2] = ( calib[27] )
+            self.digH[3] = ((calib[28]<< 4) | (0x0F & calib[29]))
+            self.digH[4] = ((calib[30]<< 4) | ((calib[29] >> 4) & 0x0F))
+            self.digH[5] = ( calib[31] )
             
             for i in range(1,2):
                 if self.digT[i] & 0x8000:
@@ -165,7 +165,7 @@ class BMP280:
         self.bus = SMBus(self.bus_number)
         self.digT = [0, 0, 0]  # 温度の補正パラメータ
         self.digP = [0, 0, 0, 0, 0, 0, 0, 0, 0]  # 気圧の補正パラメータ
-        self.digH = [0, 0, 0, 0, 0]  # 湿度の補正パラメータ(BME280の名残で書いてあるだけで，BMP280では不使用)
+        self.digH = [0, 0, 0, 0, 0, 0]  # 湿度の補正パラメータ(BME280の名残で書いてあるだけで，BMP280では不使用)
         self.t_fine = 0.0
 
         self.setup()  # 測定方法や補正方法を設定
