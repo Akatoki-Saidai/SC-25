@@ -28,7 +28,7 @@ class GNSS:
         while True:
             try:
                 if 0 < self._pygps.parsed_sentences:
-                    logger.info(f"lat: {self._pygps.latitude[0]}, lon: {self._pygps.longitude[0]}")
+                    logger.info(f"lat: {self._pygps.latitude[0]}, lon: {self._pygps.longitude[0]}, alt: {self._pygps.altitude}, speed: {self._pygps.speed}, date: {self._pygps.date}, time: {self._pygps.timestamp}")
             except Exception as e:
                 logger.exception("An error occured!")
 
