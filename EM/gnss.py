@@ -22,6 +22,7 @@ class GNSS:
         self._pygps = MicropyGPS(9, 'dd')
         self._read_thread = Thread(target=self._update)
         self._read_thread.start()
+        self._read_thread.join()
     
     # def get_forever(self, data):
     #     while True:
