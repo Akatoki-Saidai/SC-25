@@ -670,6 +670,7 @@ class BNO055(object):
             and pitch euler angles in degrees.
             """
             heading, roll, pitch = self._read_vector(BNO055_EULER_H_LSB_ADDR)
+            logger.debug(f"euler: {heading/16.0}, {roll/16.0}, {pitch/16.0}")
             return (heading/16.0, roll/16.0, pitch/16.0)
         except Exception as e:
             logger.exception("An error occured!")
@@ -680,6 +681,7 @@ class BNO055(object):
             in micro-Teslas.
             """
             x, y, z = self._read_vector(BNO055_MAG_DATA_X_LSB_ADDR)
+            logger.debug(f"mag: {x/16.0}, {y/16.0}, {z/16.0}")
             return (x/16.0, y/16.0, z/16.0)
         except Exception as e:
             logger.exception("An error occured!")
@@ -690,6 +692,7 @@ class BNO055(object):
             X, Y, Z values in degrees per second.
             """
             x, y, z = self._read_vector(BNO055_GYRO_DATA_X_LSB_ADDR)
+            logger.debug(f"gyro: {x/900.0}, {y/900.0}, {z/900.0}")
             return (x/900.0, y/900.0, z/900.0)
         except Exception as e:
             logger.exception("An error occured!")
@@ -700,6 +703,7 @@ class BNO055(object):
             in meters/second^2.
             """
             x, y, z = self._read_vector(BNO055_ACCEL_DATA_X_LSB_ADDR)
+            logger.debug(f"accel: {x/100.0}, {y/100.0}, {z/100.0}")
             return (x/100.0, y/100.0, z/100.0)
         except Exception as e:
             logger.exception("An error occured!")
@@ -710,6 +714,7 @@ class BNO055(object):
             not from gravity) reading as a tuple of X, Y, Z values in meters/second^2.
             """
             x, y, z = self._read_vector(BNO055_LINEAR_ACCEL_DATA_X_LSB_ADDR)
+            logger.debug(f"liner_accel: {x/100.0}, {y/100.0}, {z/100.0}")
             return (x/100.0, y/100.0, z/100.0)
         except Exception as e:
             logger.exception("An error occured!")
@@ -720,6 +725,7 @@ class BNO055(object):
             values in meters/second^2.
             """
             x, y, z = self._read_vector(BNO055_GRAVITY_DATA_X_LSB_ADDR)
+            logger.debug(f"grav: {x/100.0}, {y/100.0}, {z/100.0}")
             return (x/100.0, y/100.0, z/100.0)
         except Exception as e:
             logger.exception("An error occured!")
@@ -732,6 +738,7 @@ class BNO055(object):
             w, x, y, z = self._read_vector(BNO055_QUATERNION_DATA_W_LSB_ADDR, 4)
             # Scale values, see 3.6.5.5 in the datasheet.
             scale = (1.0 / (1<<14))
+            logger.debug(f"quaternion: {x*scale}, {y*scale}, {z*scale}")
             return (x*scale, y*scale, z*scale, w*scale)
         except Exception as e:
             logger.exception("An error occured!")
@@ -739,7 +746,9 @@ class BNO055(object):
     def read_temp(self):
         try:
             """Return the current temperature in Celsius."""
-            return self._read_signed_byte(BNO055_TEMP_ADDR)
+            temperature = self._read_signed_byte(BNO055_TEMP_ADDR)
+            logger.debug(f"bno_temp: {temperature}")
+            return temperature
         except Exception as e:
             logger.exception("An error occured!")
     
