@@ -94,7 +94,7 @@ def main():
     # 取得したデータ  新たなデータを取得し次第，中身を更新する
     data = {"phase": None, "lat": None, "lon": None, "alt": None, "temp": None, "press": None, "camera_order": None, "accel": [None, None, None], "mag": [None, None, None], "gyro": [None, None, None]}
 
-    wait_phase()
+    wait_phase(devices, data)
     # # 並列処理で待機フェーズを実行
     # wait_thread = Thread(target=wait_phase, args=(devices, data,))
     # wait_thread.start()  # 待機フェーズを開始する
