@@ -755,6 +755,7 @@ class BNO055(object):
                 data["grav"][0], data["grav"][1], data["grav"][2] = self.read_gravity()
                 # self.read_quaternion()
                 # self.read_temp()
+                time.sleep(0.2)
             except Exception as e:
                 logger.exception("An error occured!")
     
