@@ -79,7 +79,7 @@ if __name__ == "__main__":
     """
     
     #これサンプルコードだから0~180のangle採用してる。書き換える必要あり。
-    sg90 = SG90( pin=26, min_angle=0, max_angle=180, ini_angle=0,freq=50)
+    sg90 = SG90( pin=12, min_angle=0, max_angle=180, ini_angle=0,freq=50)
 
     # サーボ動作開始
     sg90.start()
