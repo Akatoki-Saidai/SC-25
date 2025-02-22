@@ -41,10 +41,10 @@ def setup(devices):
         logger.exception("An error occured in setup")
 
 # カメラの処理が重いので，カメラだけ完全に分離してセットアップ
-def camera_setup_and_start(camera_order):
+def camera_setup_and_start(camera_order, show=False):
     camera = Camera()  # セットアップ
     camera.start()  # 起動
-    camera_thread = Thread(target=camera.get_forever, args=(camera_order, True,))
+    camera_thread = Thread(target=camera.get_forever, args=(camera_order, show,))
     camera_thread.start()
 
 # 待機フェーズ
@@ -73,7 +73,7 @@ def short_phase(devices, data, camera_order):
     logger.info("Entered short phase")
     data["phase"] = "short"
     while True:
-        logger.info(f"{camera_order=}")
+        logger.info(f"camera_order: {camera_order.value}")
         time.sleep(1)
 
 # ゴールフェーズ
