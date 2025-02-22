@@ -87,7 +87,6 @@ def main():
     devices = {
         "bmp": None,
         "bno": None,
-        "camera": None,
         "gnss": None,
         "motor": None,
         "servo": None
