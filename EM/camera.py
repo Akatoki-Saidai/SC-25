@@ -1,5 +1,6 @@
 # camera lib
 
+import os
 import time
 from ultralytics import YOLO
 import cv2
@@ -213,10 +214,13 @@ class Camera:
             # 結果表示
             if (show == True):
                 cv2.imshow('kekka', frame)
-                cv2.imwrite('kekka.png', frame)
                 if cv2.waitKey(25) & 0xFF == ord('q'):
                     cv2.destroyAllWindows()
                     logger.log('q interrupted direction by camera')
+            
+            # 画像を保存
+            cv2.imwrite('camera_temp.jpg', frame)
+            os.rename('camera_temp.jpg', 'camera.jpg')
 
             return camera_order
         except Exception as e:
