@@ -40,10 +40,11 @@ def setup(devices):
     except Exception as e:
         logger.exception("An error occured in setup")
 
-# カメラの処理が重いので，カメラだけ完全に分離してセットアップ
+# カメラの処理が重いので，カメラだけ完全に分離してセットアップ+撮影
 def camera_setup_and_start(camera_order, show=False):
     camera = Camera()  # セットアップ
     camera.start()  # 起動
+    # カメラで画像認識し続ける
     camera_thread = Thread(target=camera.get_forever, args=(camera_order, show,))
     camera_thread.start()
 
@@ -120,9 +121,9 @@ def main():
     long_phase(devices, data)
 
     # 並列処理でカメラをセットアップして撮影開始（並行処理ではない）
-    camera_order = Value('i', 0)
+    camera_order = Value('i', 0)  # 別のプロセスとデータをやり取りするのでcamera_orderだけ特殊な扱い
     camera_process = Process(target=camera_setup_and_start, args=(camera_order, True))
-    camera_process.start()
+    camera_process.start()  # 画像認識スタート
 
     # 短距離フェーズを実行
     short_phase(devices, data, camera_order)
