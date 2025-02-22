@@ -213,6 +213,7 @@ class Camera:
             # 結果表示
             if (show == True):
                 cv2.imshow('kekka', frame)
+                cv2.imwrite('kekka.png', frame)
                 if cv2.waitKey(25) & 0xFF == ord('q'):
                     cv2.destroyAllWindows()
                     logger.log('q interrupted direction by camera')
