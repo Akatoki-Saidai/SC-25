@@ -35,8 +35,6 @@ def setup(devices):
 
         # スピーカーのセットアップ
         # 不要
-
-
     except Exception as e:
         logger.exception("An error occured in setup")
 
@@ -120,6 +118,7 @@ def main():
     long_phase(devices, data)
 
     # 並列処理でカメラをセットアップして撮影開始（並行処理ではない）
+    # カラーコーンの位置を camera_order.value に代入し続ける
     camera_order = Value('i', 0)  # 別のプロセスとデータをやり取りするのでcamera_orderだけ特殊な扱い
     camera_process = Process(target=camera_setup_and_start, args=(camera_order, True))
     camera_process.start()  # 画像認識スタート
