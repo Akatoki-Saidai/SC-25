@@ -1,6 +1,7 @@
 import pigpio
 import time
 
+import sc_logging
 
 """
 参考にしたサイト
@@ -10,7 +11,7 @@ S35 STDの仕様について：https://qiita.com/yukima77/items/cb640ce99c9fd624
 上同：https://akizukidenshi.com/catalog/g/g108305/
 """
 
-
+logger = sc_logging.get_logger(__name__)
 
 class SG90:
     """
@@ -44,7 +45,7 @@ class SG90:
     #set_servo_pulsewidthを使わない方法(案)
     def set_angle(self,target_angle):
         if target_angle < self.min_angle or target_angle > self.max_angle:
-            print(f"角度は{self.min_angle}から{self.max_angle}度の間で指定してください。")
+            logger.warning(f"角度は{self.min_angle}から{self.max_angle}度の間で指定してください。")
             return
         #角度[degree]→パルス幅[μs]に変換
         pulse_width = ((target_angle)/180.0)*1900.0+500.0
@@ -57,7 +58,7 @@ class SG90:
         #PWM出力
         # self.pi.hardware_PWM(self.pin,frequency,duty_cycle) # hardware-PWM バージョン
         self.pi.set_PWM_frequency(self.pin, frequency) # software-PWM バージョン
-        self.pi.set_PWM_dutycycle(self.pin, int(duty_cycle*255/1000000)) # software-PWM バージョン
+        self.pi.set_PWM_dutycycle(self.pin, int(pwm_duty*255/100)) # software-PWM バージョン
     
     def set_ini_angle(self):
         self.set_angle(self.ini_angle)
