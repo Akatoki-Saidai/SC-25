@@ -57,7 +57,7 @@ class SG90:
         #PWM出力
         # self.pi.hardware_PWM(self.pin,frequency,duty_cycle) # hardware-PWM バージョン
         self.pi.set_PWM_frequency(self.pin, frequency) # software-PWM バージョン
-        self.pi.set_PWM_dutycycle(self.pin, duty_cycle*255/1000000) # software-PWM バージョン
+        self.pi.set_PWM_dutycycle(self.pin, int(duty_cycle*255/1000000)) # software-PWM バージョン
     
     def set_ini_angle(self):
         self.set_angle(self.ini_angle)
