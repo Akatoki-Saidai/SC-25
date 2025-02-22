@@ -23,9 +23,6 @@ def setup(devices):
         devices["bno"] = BNO055()
         if not devices["bno"].begin():
             logger.critical('Failed to initialize BNO055! Is the sensor connected?')
-        
-        # カメラをセットアップ
-        devices["camera"] = Camera()
 
         # GNSS (BE-180) をセットアップ
         devices["gnss"] = GNSS()
@@ -43,6 +40,12 @@ def setup(devices):
     except Exception as e:
         logger.exception("An error occured in setup")
 
+# カメラの処理が重いので，カメラだけ完全に分離してセットアップ
+def camera_setup_and_start(camera_order):
+    camera = Camera()  # セットアップ
+    camera.start()  # 起動
+    camera_thread = Thread(target=camera.get_forever, args=(camera_order, True,))
+    camera_thread.start()
 
 # 待機フェーズ
 def wait_phase(devices, data):
@@ -93,7 +96,7 @@ def main():
     setup(devices)
 
     # 取得したデータ  新たなデータを取得し次第，中身を更新する
-    data = {"phase": None, "lat": None, "lon": None, "alt": None, "temp": None, "press": None, "camera_order": None, "accel": [None, None, None], "line_accel": [None, None, None], "mag": [None, None, None], "gyro": [None, None, None], "grav": [None, None, None]}
+    data = {"phase": None, "lat": None, "lon": None, "alt": None, "temp": None, "press": None, "accel": [None, None, None], "line_accel": [None, None, None], "mag": [None, None, None], "gyro": [None, None, None], "grav": [None, None, None]}
 
     # 並行処理でBMP280による測定をし続け，dataに代入し続ける
     bmp_thread = Thread(target=devices["bmp"].get_forever, args=(data,))
@@ -107,21 +110,20 @@ def main():
     gnss_thread = Thread(target=devices["gnss"].get_forever, args=(data,))
     gnss_thread.start()  # GNSSによる測定をスタート
 
-    # 並列処理でカメラによる撮影をし続ける（並行処理ではない）
+    # 待機フェーズを実行
+    wait_phase(devices, data)
+
+    # 落下フェーズを実行
+    fall_phase(devices, data)
+
+    # 遠距離フェーズを実行
+    long_phase(devices, data)
+
+    # 並列処理でカメラをセットアップして撮影開始（並行処理ではない）
     camera_order = Value('i', 0)
-    camera_process = Process(target=devices["camera"].result, args=(camera_order, True))
+    camera_process = Process(target=camera_setup_and_start, args=(camera_order, True))
+    camera_process.start()
 
-    # # 待機フェーズを実行
-    # wait_phase(devices, data)
-
-    # # 落下フェーズを実行
-    # fall_phase(devices, data)
-
-    # # 遠距離フェーズを実行
-    # long_phase(devices, data)
-
-    devices["camera"].start()  # カメラを起動
-    camera_process.start()  # 撮影を開始
     # 短距離フェーズを実行
     short_phase(devices, data, camera_order)
 
