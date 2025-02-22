@@ -221,6 +221,16 @@ class Camera:
         except Exception as e:
             logger.exception("An error occured!")
     
+    # ずっとカメラによる画像認識をし続けます．
+    # このメッソッドはmultipleprocessingで呼び出されることを想定しています
+    def get_forever(self, camera_order, show=False):
+        logger = sc_logging.get_logger(__name__)
+        while True:
+            try:
+                camera_order.value = self.result(show=show)
+            except Exception as e:
+                logger.exception("An error occured!")
+    
 
 if __name__ == '__main__':
     

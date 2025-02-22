@@ -1,4 +1,5 @@
-import threading
+from threading import Thread
+from multiprocessing import Process, Value
 import time
 
 from bmp280 import BMP280
@@ -65,9 +66,12 @@ def long_phase(devices, data):
     data["phase"] = "long"
 
 # 近距離フェーズ
-def short_phase(devices, data):
+def short_phase(devices, data, camera_order):
     logger.info("Entered short phase")
     data["phase"] = "short"
+    while True:
+        logger.info(f"{camera_order=}")
+        time.sleep(1)
 
 # ゴールフェーズ
 def goal_phase(devices, data):
@@ -92,28 +96,34 @@ def main():
     data = {"phase": None, "lat": None, "lon": None, "alt": None, "temp": None, "press": None, "camera_order": None, "accel": [None, None, None], "line_accel": [None, None, None], "mag": [None, None, None], "gyro": [None, None, None], "grav": [None, None, None]}
 
     # 並行処理でBMP280による測定をし続け，dataに代入し続ける
-    get_bmp_thread = threading.Thread(target=devices["bmp"].get_forever, args=(data,))
-    get_bmp_thread.start()  # BMP280による測定をスタート
+    bmp_thread = Thread(target=devices["bmp"].get_forever, args=(data,))
+    bmp_thread.start()  # BMP280による測定をスタート
     
     # 並行処理でBNO055による測定をし続け，dataに代入し続ける
-    get_bno_thread = threading.Thread(target=devices["bno"].get_forever, args=(data,))
-    get_bno_thread.start()  # BNO055による測定をスタート
+    bno_thread = Thread(target=devices["bno"].get_forever, args=(data,))
+    bno_thread.start()  # BNO055による測定をスタート
 
     # 並行処理でGNSSによる測定をし続け，dataに代入し続ける
-    get_gnss_thread = threading.Thread(target=devices["gnss"].get_forever, args=(data,))
-    get_gnss_thread.start()  # GNSSによる測定をスタート
+    gnss_thread = Thread(target=devices["gnss"].get_forever, args=(data,))
+    gnss_thread.start()  # GNSSによる測定をスタート
 
-    # 待機フェーズを実行
-    wait_phase(devices, data)
+    # 並列処理でカメラによる撮影をし続ける（並行処理ではない）
+    camera_order = Value('i', 0)
+    camera_process = Process(target=devices["camera"].result, args=(camera_order, True))
 
-    # 落下フェーズを実行
-    fall_phase(devices, data)
+    # # 待機フェーズを実行
+    # wait_phase(devices, data)
 
-    # 遠距離フェーズを実行
-    long_phase(devices, data)
+    # # 落下フェーズを実行
+    # fall_phase(devices, data)
 
+    # # 遠距離フェーズを実行
+    # long_phase(devices, data)
+
+    devices["camera"].start()  # カメラを起動
+    camera_process.start()  # 撮影を開始
     # 短距離フェーズを実行
-    short_phase(devices, data)
+    short_phase(devices, data, camera_order)
 
     # ゴールフェーズを実行
     goal_phase(devices, data)
