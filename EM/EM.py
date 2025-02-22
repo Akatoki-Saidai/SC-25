@@ -10,6 +10,7 @@ from gnss import GNSS
 import sc_logging
 from motor import Motor
 import speaker
+import start_gui
 
 logger = sc_logging.get_logger(__name__)
 
