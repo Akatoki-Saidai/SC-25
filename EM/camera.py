@@ -191,22 +191,22 @@ class Camera:
 
             try:
                 # YOLO
-                yolo_xylist, yolo_center_x = cam.yolo_detect(frame)
+                yolo_xylist, yolo_center_x = self.yolo_detect(frame)
                 logger.debug(f"yolo_xylist: {yolo_xylist}, yolo_center_x: {yolo_center_x}")
             except Exception as e:
                 logger.exception("An error occured in yolo_detect")
 
             try:
                 # 赤色検出
-                mask = cam.red_detect(frame)
-                red_area, _red_x, _red_y = cam.analyze_red(mask)
+                mask = self.red_detect(frame)
+                red_area, _red_x, _red_y = self.analyze_red(mask)
                 logger.debug("red area: {red_area}")
             except Exception as e:
                 logger.exception("An error occured in analize_red")
             
             # 判断
             try:
-                frame, camera_order = cam.judge_cone(frame, yolo_xylist, yolo_center_x, red_area)
+                frame, camera_order = self.judge_cone(frame, yolo_xylist, yolo_center_x, red_area)
             except Exception as e:
                 logger.exception("An error occured in judgement")
 
