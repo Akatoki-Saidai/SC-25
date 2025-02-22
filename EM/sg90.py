@@ -55,7 +55,9 @@ class SG90:
         duty_cycle = int(pwm_duty* 1000000 / 100)
         frequency = int(self.freq)
         #PWM出力
-        self.pi.hardware_PWM(self.pin,frequency,duty_cycle)
+        # self.pi.hardware_PWM(self.pin,frequency,duty_cycle) # hardware-PWM バージョン
+        self.pi.set_PWM_frequency(self.pin, frequency) # software-PWM バージョン
+        self.pi.set_PWM_dutycycle(self.pin, duty_cycle) # software-PWM バージョン
     
     def set_ini_angle(self):
         self.set_angle(self.ini_angle)
@@ -79,7 +81,7 @@ if __name__ == "__main__":
     """
     
     #これサンプルコードだから0~180のangle採用してる。書き換える必要あり。
-    sg90 = SG90( pin=12, min_angle=0, max_angle=180, ini_angle=0,freq=50)
+    sg90 = SG90( pin=26, min_angle=0, max_angle=180, ini_angle=0,freq=50)
 
     # サーボ動作開始
     sg90.start()
