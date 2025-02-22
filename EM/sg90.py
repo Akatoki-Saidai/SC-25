@@ -79,7 +79,7 @@ if __name__ == "__main__":
     """
     
     #これサンプルコードだから0~180のangle採用してる。書き換える必要あり。
-    sg90 = SG90( pin=18, min_angle=20, max_angle=160, ini_angle=0,freq=50)
+    sg90 = SG90( pin=26, min_angle=0, max_angle=180, ini_angle=0,freq=50)
 
     # サーボ動作開始
     sg90.start()
@@ -90,9 +90,13 @@ if __name__ == "__main__":
     # 初期位置(ini_angle)に移動
     sg90.set_ini_angle()
     time.sleep(3)
-    # 現在の角度を表示
-    print(sg90.angle)
-    time.sleep(3)
+
+    for angle in range(0, 180, 10):
+        # 現在の角度を表示
+        print(sg90.angle)
+        # 角度をセット
+        sg90.set_angle(angle)
+        time.sleep(3)
 
     # サーボ動作停止
     sg90.stop()
