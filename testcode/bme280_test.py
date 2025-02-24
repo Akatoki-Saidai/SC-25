@@ -1,6 +1,6 @@
 import smbus
 import time
-import make_csv  # make_csv関数をインポート
+# import make_csv  # make_csv関数をインポート
 
 class BME280:
     bus_number  = 1  # I2Cバス番号
