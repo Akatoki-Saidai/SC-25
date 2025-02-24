@@ -3,16 +3,6 @@ import time
 # import make_csv  # make_csv関数をインポート
 
 class BME280:
-    bus_number  = 1  # I2Cバス番号
-    i2c_address = 0x76  # BME280のI2Cアドレス
-    
-    bus = smbus.SMBus(bus_number)  # I2Cバスの初期化
-    
-    digT = []  # 温度キャリブレーションデータ
-    digP = []  # 気圧キャリブレーションデータ
-    digH = []  # 湿度キャリブレーションデータ
-    
-    t_fine = 0.0  # 温度補正用の変数
     
     # レジスタにデータを書き込む関数
     def writeReg(self, reg_address, data):
@@ -143,6 +133,17 @@ class BME280:
     
     # センサーの初期設定とキャリブレーションデータの取得
     def initialize(self):
+        
+        self.bus_number  = 1  # I2Cバス番号
+        self.i2c_address = 0x76  # BME280のI2Cアドレス
+        
+        self.bus = smbus.SMBus(self.bus_number)  # I2Cバスの初期化
+        
+        self.digT = []  # 温度キャリブレーションデータ
+        self.digP = []  # 気圧キャリブレーションデータ
+        self.digH = []  # 湿度キャリブレーションデータ
+        
+        t_fine = 0.0  # 温度補正用の変数
         self.setup()
         self.get_calib_param()
         print("init ok")
