@@ -145,6 +145,8 @@ class BME280:
     def initialize(self):
         self.setup()
         self.get_calib_param()
+        print("init ok")
+        time.sleep(1)
 
 if __name__ == '__main__':
     bme280 = BME280()
@@ -156,7 +158,7 @@ if __name__ == '__main__':
             pressure = bme280.read_pressure()  # 気圧を読み取る
             altitude = bme280.get_altitude()  # 高度を読み取る
             data = [temperature, pressure, altitude]
-            make_csv.write_data('bme280_data.csv', data)  # データをCSVに書き込む
+            # make_csv.write_data('bme280_data.csv', data)  # データをCSVに書き込む
             time.sleep(1)  # 1秒待機
     except KeyboardInterrupt:
         pass  # プログラム終了時の処理
