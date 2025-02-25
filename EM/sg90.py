@@ -43,6 +43,8 @@ class SG90:
 
         self._pi = pigpio.pi()
         self._pi.set_mode(self._pin, pigpio.OUTPUT)
+
+        self.set_ini_angle()
     
     def __del__(self):
         """サーボモータを終了"""
@@ -74,6 +76,8 @@ class SG90:
         # self.pi.hardware_PWM(self.pin,frequency,duty_cycle) # hardware-PWM バージョン
         self._pi.set_PWM_frequency(self._pin, frequency) # software-PWM バージョン
         self._pi.set_PWM_dutycycle(self._pin, int(pwm_duty*255/100)) # software-PWM バージョン
+
+        self._logger.info(f"servo_angle: {self._angle}")
         return self._angle
     
     def set_ini_angle(self):
@@ -99,17 +103,11 @@ if __name__ == "__main__":
     
     #これサンプルコードだから0~180のangle採用してる。書き換える必要あり。
     sg90 = SG90( pin=26, min_angle=0, max_angle=180, ini_angle=0,freq=50)
-
-    # サンプル動作 
-    print(sg90.angle)
-
-    # 初期位置(ini_angle)に移動
-    sg90.set_ini_angle()
     time.sleep(3)
 
     for angle in range(0, 180, 10):
         # 現在の角度を表示
-        print(sg90.angle)
+        print(f"kakudo_now: {sg90.angle}")
         # 角度をセット
         sg90.angle = angle
         time.sleep(3)
