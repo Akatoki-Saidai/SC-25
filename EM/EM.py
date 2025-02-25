@@ -6,7 +6,7 @@ from bmp280 import BMP280
 from bno055 import BNO055
 from camera import Camera
 from gnss import GNSS
-# from sg90 import SG90
+from sg90 import SG90
 import sc_logging
 from motor import Motor
 import speaker
@@ -32,7 +32,7 @@ def setup(devices):
         devices["motor"] = Motor(right_pin1=20, right_pin2=21, left_pin1=5, left_pin2=7)
 
         # サーボモーターのセットアップ
-        # devices["servo"] = SG90(pin=26, min_angle=-90, max_angle=90, ini_angle=0, freq=50)
+        devices["servo"] = SG90(pin=26, min_angle=-90, max_angle=90, ini_angle=0, freq=50, logger=logger)
 
         # スピーカーのセットアップ
         # 不要
