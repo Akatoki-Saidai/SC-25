@@ -237,7 +237,7 @@ class BMP280:
     def get_forever(self, data):
         while True:
             try:
-                data["temp"], data["press"], _, data["alt"] = self.read_data()
+                data["temp"], data["press"], _, data["alt"] = self.read()
                 time.sleep(0.1)
             except Exception as e:
                 self.logger.exception("An error occured!")
