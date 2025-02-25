@@ -1,7 +1,7 @@
-import pigpio
+import pigpio  # pigpioでPWM出力
 import time
 
-import sc_logging
+from logging import getLogger, StreamHandler  # ログを記録するため
 
 """
 参考にしたサイト
@@ -11,57 +11,72 @@ S35 STDの仕様について：https://qiita.com/yukima77/items/cb640ce99c9fd624
 上同：https://akizukidenshi.com/catalog/g/g108305/
 """
 
-logger = sc_logging.get_logger(__name__)
+# pigpioが動かないときはpigpioが有効化されていないかもしれません．
+# sudo pigpiod を実行
 
 class SG90:
+    """SG90を制御するクラス
+
+    pin: GPIOのピン番号
+    max_angle: 最大移動角度
+    min_angle: 最小移動角度
+    angle: 現在の角度
+    ini_angle: 初期設定角度
+    pi: gpio制御
     """
-    SG90を制御するクラス
+    def __init__(self, pin, min_angle=0, max_angle=180, ini_angle=0, freq=50, logger=None):
+        """サーボモータをセットアップ"""
 
-    Attributes:
-        pin: GPIOのピン番号
-        max_angle: 最大移動角度
-        min_angle: 最小移動角度
-        angle: 現在の角度
-        ini_angle: 初期設定角度
-        pi: gpio制御
-    """
-    def __init__(self, pin=18, min_angle=0, max_angle=180, ini_angle=0,freq=50):
-        self.pin = pin
-        self.max_angle = max_angle
-        self.min_angle = min_angle
-        self.angle = 0
-        self.ini_angle = ini_angle
-        self.pi = None
-        self.freq = freq
+        # もしloggerが渡されなかったら，ログの記録先を標準出力にする
+        if logger is None:
+            logger = getLogger(__name__)
+            logger.addHandler(StreamHandler())
+            logger.setLevel(10)
+        self._logger = logger
 
-    def start(self):
-        self.pi = pigpio.pi()
-        self.pi.set_mode(self.pin, pigpio.OUTPUT)
+        self._pin = pin
+        self._max_angle = max_angle
+        self._min_angle = min_angle
+        self._angle = 0
+        self._ini_angle = ini_angle
+        self._freq = freq
 
-    def stop(self):
-        self.pi.set_mode(self.pin, pigpio.INPUT)
-        self.pi.stop()
+        self._pi = pigpio.pi()
+        self._pi.set_mode(self._pin, pigpio.OUTPUT)
+    
+    def __del__(self):
+        """サーボモータを終了"""
+        self._pi.set_mode(self._pin, pigpio.INPUT)
+        self._pi.stop()
+
+    @property
+    def angle(self):
+        """サーボモータの角度を取得"""
+        return self._angle
 
     #set_servo_pulsewidthを使わない方法(案)
-    def set_angle(self,target_angle):
-        if target_angle < self.min_angle or target_angle > self.max_angle:
-            logger.warning(f"角度は{self.min_angle}から{self.max_angle}度の間で指定してください。")
-            return
+    @angle.setter
+    def angle(self,target_angle):
+        if target_angle < self._min_angle or target_angle > self._max_angle:
+            self._logger.warning(f"角度は{self._min_angle}から{self._max_angle}度の間で指定してください。")
+            return self._angle
+        
         #角度[degree]→パルス幅[μs]に変換
         pulse_width = ((target_angle)/180.0)*1900.0+500.0
-        self.angle = target_angle
+        self._angle = target_angle
         #duty比[%]を計算(周期：20ms=20000μs)
         pwm_duty = 100.0*(pulse_width/20000.0)
         #duty比をhardware_PWMに使える形に変換(1,000,000を100%と考えて数値を指定するらしい.整数で表したいとかなんとか.)
         duty_cycle = int(pwm_duty* 1000000 / 100)
-        frequency = int(self.freq)
+        frequency = int(self._freq)
         #PWM出力
         # self.pi.hardware_PWM(self.pin,frequency,duty_cycle) # hardware-PWM バージョン
-        self.pi.set_PWM_frequency(self.pin, frequency) # software-PWM バージョン
-        self.pi.set_PWM_dutycycle(self.pin, int(pwm_duty*255/100)) # software-PWM バージョン
+        self._pi.set_PWM_frequency(self._pin, frequency) # software-PWM バージョン
+        self._pi.set_PWM_dutycycle(self._pin, int(pwm_duty*255/100)) # software-PWM バージョン
+        return self._angle
     
     def set_ini_angle(self):
-        self.set_angle(self.ini_angle)
+        self.angle = self._ini_angle
     
     
 
@@ -84,9 +99,6 @@ if __name__ == "__main__":
     #これサンプルコードだから0~180のangle採用してる。書き換える必要あり。
     sg90 = SG90( pin=26, min_angle=0, max_angle=180, ini_angle=0,freq=50)
 
-    # サーボ動作開始
-    sg90.start()
-
     # サンプル動作 
     print(sg90.angle)
 
@@ -98,8 +110,5 @@ if __name__ == "__main__":
         # 現在の角度を表示
         print(sg90.angle)
         # 角度をセット
-        sg90.set_angle(angle)
+        sg90.angle = angle
         time.sleep(3)
-
-    # サーボ動作停止
-    sg90.stop()
