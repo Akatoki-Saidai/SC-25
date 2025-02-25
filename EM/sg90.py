@@ -47,9 +47,12 @@ class SG90:
         self.set_ini_angle()
     
     def __del__(self):
-        """サーボモータを終了"""
-        self._pi.set_mode(self._pin, pigpio.INPUT)
-        self._pi.stop()
+        try:
+            """サーボモータを終了"""
+            self._pi.set_mode(self._pin, pigpio.INPUT)
+            self._pi.stop()
+        except Exception as e:
+            self._logger.exception("An error occured")
 
     @property
     def angle(self):
@@ -111,3 +114,5 @@ if __name__ == "__main__":
         # 角度をセット
         sg90.angle = angle
         time.sleep(3)
+    
+    del sg90  # サーボモータをストップ(delしなくても勝手に止まる)
