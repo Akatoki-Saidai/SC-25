@@ -19,7 +19,7 @@ class BMP280:
         # もしloggerが渡されなかったら，ログの記録先を標準出力にする
         if logger is None:
             logger = getLogger(__name__)
-            logger.addHandler(StreamHandler)
+            logger.addHandler(StreamHandler())
             logger.setLevel(10)
         self.logger = logger
 
