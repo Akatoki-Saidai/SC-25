@@ -25,7 +25,6 @@ from logging import getLogger, StreamHandler  # ログを記録するため
 import time
 import pigpio
 # import serial  # UARTによる通信を行うときに使用
-import sc_logging
 
 
 # I2C addresses
