@@ -81,7 +81,7 @@ def goal_phase(devices, data):
     logger.info("Entered goal phase")
     data["phase"] = "goal"
 
-def main():
+if __name__ == "__main__":
     # 使用するデバイス  変数の中身をこの後変更する
     devices = {
         "bmp": None,
@@ -129,6 +129,3 @@ def main():
 
     # ゴールフェーズを実行
     goal_phase(devices, data)
-
-if __name__ == "__main__":
-    main()

@@ -233,16 +233,14 @@ class BMP280:
         
         return humidity
     
-    # # 永遠に測定し続ける
-    # def get_forever(self, data):
-    #     while True:
-    #         try:
-    #             read_temperature, read_pressure = self.read_data()
-    #             data["temp"], data["press"] = read_temperature, read_pressure
-    #             data["alt"] = self.get_altitude(temperature=read_temperature, pressure=read_pressure)
-    #             time.sleep(0.2)
-    #         except Exception as e:
-    #             self.logger.exception("An error occured!")
+    # ずっと測定し続ける
+    def get_forever(self, data):
+        while True:
+            try:
+                data["temp"], data["press"], _, data["alt"] = read_temperature, read_pressure = self.read_data()
+                time.sleep(0.1)
+            except Exception as e:
+                self.logger.exception("An error occured!")
 
 
 if __name__ == '__main__':
