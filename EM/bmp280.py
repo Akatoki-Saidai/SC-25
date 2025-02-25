@@ -29,21 +29,23 @@ class BMP280:
 
         self._setup()  # 測定方法や補正方法を設定
         self._get_calib_param()  # 補正用パラメータの読み取りと保存
+        self._qnh = 1013.25
         
         # 起動直後は測定が終わっておらず値が異常なので空受信
         for i in range(20):
-            self.read_data()
+            self.read()
+            time.sleep(0.1)
         self._get_qnh()  # 高度0m地点とする場所の気圧を保存
 
     # 測定方法や補正方法を設定
     def _setup(self):
         try:
             osrs_t = 1  # 気温のオーバーサンプリング (複数回測定すると精度が上がり測定にかかる時間が伸びる．1,2,4,8,16回から選べる)
-            osrs_p = 1  # 気圧のオーバーサンプリング
-            osrs_h = 1  # 湿度のオーバーサンプリング (BME280では使うがBMP280では不使用)
+            osrs_p = 16  # 気圧のオーバーサンプリング (複数回測定すると精度が上がり測定にかかる時間が伸びる．1,2,4,8,16回から選べる)
+            osrs_h = 1  # 湿度のオーバーサンプリング (複数回測定すると精度が上がり測定にかかる時間が伸びる．1,2,4,8,16回から選べる) (BME280では使うがBMP280では不使用)
             mode   = 3  # 電力モード (0:sleep, 1:forced(1回だけすばやく測定), 3:normal(t_sb間隔で何度も測定))
             t_sb   = 4  # normalモードにおける測定(データの更新)間隔  (0:0.5ms, 1:62.5ms, 2:125ms, 3:250ms, 4:500ms, 5:1000ms, 6:2000ms, 7:4000ms)
-            filter = 0  # ノイズを除去するIIRフィルタ (0:off, 2,4,8,16:on(数字が増えると精度が上がる))
+            filter = 16  # ノイズを除去するIIRフィルタ (0:off, 2,4,8,16:on(数字が増えると精度が上がる))
             spi3w_en = 0  # 3線式SPIを有効にするか (I2Cを使うので無効化しておく)
 
             # 設定データを送信用のバイト列に加工
@@ -127,32 +129,31 @@ class BMP280:
 
             # 気圧を複数回測定し，平均値を求める
             for i in range(qnh_size):
-                _, pressure, _ = self.read_data()
+                _, pressure, _ = self.read()
                 qnh_values.append(pressure)
                 time.sleep(0.1)
 
-            self.qnh = sum(qnh_values) / len(qnh_values)
+            self._qnh = sum(qnh_values) / len(qnh_values)
         except Exception as e:
             self.logger.exception("An error occured!")
     
     # 気温と気圧から高度を算出
-    def get_altitude(self, temperature, pressure):
+    def _get_altitude(self, temperature, pressure):
         try:
             # qnh = 高度0m地点の気圧.
             
             # 気圧のみを使って高度を算出 (推奨)
-            altitude = (((1 - (pow((pressure / self.qnh), 0.190284))) * 145366.45) / 0.3048 ) / 10
+            altitude = (((1 - (pow((pressure / self._qnh), 0.190284))) * 145366.45) / 0.3048 ) / 10
             
             # 気圧と温度を使って高度を算出 (直射日光によるセンサの温度上昇の影響を受けるため非推奨)
             # altitude = ((pow((self.qnh / pressure), (1.0 / 5.257)) - 1) * (temperature + 273.15)) / 0.0065
-            
-            self.logger.debug(f"altitude: {altitude}")
+
             return altitude
         except Exception as e:
             self.logger.exception("An error occured!")
 
     # 測定値を受信
-    def read_data(self):
+    def read(self):
         try:
             # 測定値の生データを受信
             data = []
@@ -167,12 +168,13 @@ class BMP280:
             temperature = float(self._compensate_T(temp_raw))
             pressure = float(self._compensate_P(pres_raw))
             humidity = float(self._compensate_H(hum_raw))
-            
-            self.logger.info(f"pressure : {pressure/100} hPa".format(pressure/100))
-            self.logger.info(f"temperature : {temperature} ℃".format(temperature))
-            self.logger.info(f"humidity : {humidity} %")
 
-            return temperature, pressure, humidity
+            # 高度を算出
+            altitude = self._get_altitude(temperature, pressure)
+            
+            self.logger.info(f"pressure : {pressure/100: 4.3f} hPa, temperature : {temperature: 2.2f} ℃, humidity : {humidity: 3.0f} %, altitude : {altitude: 4.2f} m")
+
+            return temperature, pressure, humidity, altitude
         except Exception as e:
             self.logger.exception("An error occured!")
 
@@ -247,8 +249,7 @@ if __name__ == '__main__':
     
     while True:
         try:
-            temperature, pressure, _ = bmp.read_data()  # 温度，気圧(，湿度)を測定
-            bmp.get_altitude(temperature, pressure)  # 温度と気圧から高度を算出
+            temperature, pressure, _, altitude = bmp.read()  # 温度，気圧(，湿度), 高度を読み取り
         except Exception as e:
             print(f"Unexpected error occcured: {e}")
 
