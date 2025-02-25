@@ -57,6 +57,7 @@ class SG90:
     #set_servo_pulsewidthを使わない方法(案)
     @angle.setter
     def angle(self,target_angle):
+        """サーボモータの角度を特定の角度に動かす"""
         if target_angle < self._min_angle or target_angle > self._max_angle:
             self._logger.warning(f"角度は{self._min_angle}から{self._max_angle}度の間で指定してください。")
             return self._angle
