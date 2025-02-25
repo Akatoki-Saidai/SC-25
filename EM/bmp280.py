@@ -67,11 +67,11 @@ class BMP280:
     def _setup(self):
         try:
             osrs_t = 1  # 気温のオーバーサンプリング (複数回測定すると精度が上がり測定にかかる時間が伸びる．1,2,4,8,16回から選べる)
-            osrs_p = 16  # 気圧のオーバーサンプリング (複数回測定すると精度が上がり測定にかかる時間が伸びる．1,2,4,8,16回から選べる)
+            osrs_p = 1  # 気圧のオーバーサンプリング (複数回測定すると精度が上がり測定にかかる時間が伸びる．1,2,4,8,16回から選べる)
             osrs_h = 1  # 湿度のオーバーサンプリング (複数回測定すると精度が上がり測定にかかる時間が伸びる．1,2,4,8,16回から選べる) (BME280では使うがBMP280では不使用)
             mode   = 3  # 電力モード (0:sleep, 1:forced(1回だけすばやく測定), 3:normal(t_sb間隔で何度も測定))
             t_sb   = 4  # normalモードにおける測定(データの更新)間隔  (0:0.5ms, 1:62.5ms, 2:125ms, 3:250ms, 4:500ms, 5:1000ms, 6:2000ms, 7:4000ms)
-            filter = 16  # ノイズを除去するIIRフィルタ (0:off, 2,4,8,16:on(数字が増えると精度が上がる))
+            filter = 0  # ノイズを除去するIIRフィルタ (0:off, 2,4,8,16:on(数字が増えると精度が上がる))
             spi3w_en = 0  # 3線式SPIを有効にするか (I2Cを使うので無効化しておく)
 
             # 設定データを送信用のバイト列に加工
@@ -160,6 +160,7 @@ class BMP280:
                 time.sleep(0.1)
 
             self._qnh = sum(qnh_values) / len(qnh_values)
+            self.logger.info(f"qnh: {self._qnh}")
         except Exception as e:
             self.logger.exception("An error occured!")
     
