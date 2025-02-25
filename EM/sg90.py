@@ -52,18 +52,16 @@ class SG90:
             self._pi.set_mode(self._pin, pigpio.INPUT)
             # self._pi.stop()
 
-    @property
-    def angle(self):
+    def get_angle(self):
         """サーボモータの角度を取得"""
         return self._angle
 
     #set_servo_pulsewidthを使わない方法(案)
-    @angle.setter
-    def angle(self,target_angle):
+    def set_angle(self, target_angle):
         """サーボモータの角度を特定の角度に動かす"""
         if target_angle < self._min_angle or target_angle > self._max_angle:
             self._logger.warning(f"角度は{self._min_angle}から{self._max_angle}度の間で指定してください。")
-            return self._angle
+            return
         
         #角度[degree]→パルス幅[μs]に変換
         pulse_width = ((target_angle)/180.0)*1900.0+500.0
@@ -79,7 +77,6 @@ class SG90:
         self._pi.set_PWM_dutycycle(self._pin, int(pwm_duty*255/100)) # software-PWM バージョン
 
         self._logger.info(f"servo_angle: {self._angle}")
-        return self._angle
     
     def set_ini_angle(self):
         self.angle = self._ini_angle
@@ -108,9 +105,9 @@ if __name__ == "__main__":
 
     for angle in range(0, 180, 10):
         # 現在の角度を表示
-        print(f"kakudo_now: {sg90.angle}")
+        print(f"kakudo_now: {sg90.get_angle()}")
         # 角度をセット
-        sg90.angle = angle
+        sg90.set_angle() = angle
         time.sleep(3)
     
     del sg90  # サーボモータをストップ(delしなくても勝手に止まる)
