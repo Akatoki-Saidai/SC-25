@@ -41,7 +41,7 @@ def setup(devices):
 
 # カメラの処理が重いので，カメラだけ完全に分離してセットアップ+撮影
 def camera_setup_and_start(camera_order, show=False):
-    camera = Camera()  # セットアップ
+    camera = Camera(logger, show=show, save=True)  # セットアップ
     camera.start()  # 起動
     # カメラで画像認識し続ける
     camera_thread = Thread(target=camera.get_forever, args=(camera_order, show,))

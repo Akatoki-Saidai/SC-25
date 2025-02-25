@@ -28,6 +28,13 @@ class MotorChannel(object):
         self.current_duty = 0.0   # 0～1の割合
         self.current_direction = 0  # 1: 正転, -1: 逆転, 0: 停止
         self._apply_duty()
+    
+    def __del__(self):
+        # オブジェクトの削除時のクリーンアップ
+        if self.pi.connected:
+            self._pi.set_mode(self.pin_inverse, pigpio.INPUT)
+            self._pi.set_mode(self.pin_reverse, pigpio.INPUT)
+            # self._pi.stop()
 
     def _apply_duty(self):
         # PWM出力を更新(片側)

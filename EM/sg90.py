@@ -50,7 +50,7 @@ class SG90:
         """サーボモータを終了"""
         if self._pi.connected:
             self._pi.set_mode(self._pin, pigpio.INPUT)
-            self._pi.stop()
+            # self._pi.stop()
 
     @property
     def angle(self):

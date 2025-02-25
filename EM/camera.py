@@ -149,7 +149,7 @@ class Camera:
     def judge_cone(self, frame, yolo_xylist, yolo_center_x, red_area):
         """画像認識によるカラーコーンの位置と，赤色検出によるカラーコーンの大きさから進むべき方向を決定
         
-        0:不明, 1:直進, 2:右へ, 3:左へ
+        0:不明, 1:直進, 2:右へ, 3:左へ, 4:コーンが近い(ゴール)
         """
         try:
             frame_center_x = frame.shape[1] // 2
@@ -196,10 +196,12 @@ class Camera:
             self._logger.exception("An error occured!")
     
     
-    def result(self, *, show = False):
+    def result(self, *, show = False, save=False):
         """画像認識及び赤色検出を行い，進むべき方向を返す
         
-        0:不明, 1:直進, 2:右へ, 3:左へ
+        返り値: 0:不明, 1:直進, 2:右へ, 3:左へ, 4:コーンが近い(ゴール)    
+        show=Trueなら撮影した画像をプレビューウィンドウに表示    
+        save=Trueなら撮影した画像をjpgファイルとして保存 (GUIに表示するため)    
         """
         try:
             frame = self._picam2.capture_array()
@@ -238,8 +240,9 @@ class Camera:
                     self._logger.log('q interrupted direction by camera')
             
             # 画像を保存
-            cv2.imwrite('camera_temp.jpg', frame)
-            os.rename('camera_temp.jpg', 'camera.jpg')
+            if (save == True):
+                cv2.imwrite('camera_temp.jpg', frame)
+                os.rename('camera_temp.jpg', 'camera.jpg')
 
             return camera_order
         except Exception as e:
@@ -260,6 +263,7 @@ if __name__ == '__main__':
     cam.start()  # カメラにを起動 (重くなるので使用する直前までstartしないこと)
 
     while True:
-        cam.result(show=True)
+        camera_order = cam.result(show=True)  # 画像認識をしてコーンを検出 (show=Trueなら撮影した画像のプレビューを表示)
+        print(f"{camera_order=}")
         time.sleep(1)
         
