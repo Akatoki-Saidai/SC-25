@@ -67,7 +67,7 @@ class BMP280:
     def _setup(self):
         try:
             osrs_t = 1  # 気温のオーバーサンプリング (複数回測定すると精度が上がり測定にかかる時間が伸びる．1,2,4,8,16回から選べる)
-            osrs_p = 1  # 気圧のオーバーサンプリング (複数回測定すると精度が上がり測定にかかる時間が伸びる．1,2,4,8,16回から選べる)
+            osrs_p = 16  # 気圧のオーバーサンプリング (複数回測定すると精度が上がり測定にかかる時間が伸びる．1,2,4,8,16回から選べる)
             osrs_h = 1  # 湿度のオーバーサンプリング (複数回測定すると精度が上がり測定にかかる時間が伸びる．1,2,4,8,16回から選べる) (BME280では使うがBMP280では不使用)
             mode   = 3  # 電力モード (0:sleep, 1:forced(1回だけすばやく測定), 3:normal(t_sb間隔で何度も測定))
             t_sb   = 4  # normalモードにおける測定(データの更新)間隔  (0:0.5ms, 1:62.5ms, 2:125ms, 3:250ms, 4:500ms, 5:1000ms, 6:2000ms, 7:4000ms)
@@ -251,6 +251,7 @@ if __name__ == '__main__':
     while True:
         try:
             temperature, pressure, _, altitude = bmp.read()  # 温度，気圧(，湿度), 高度を読み取り
+            time.sleep(1)
         except Exception as e:
             print(f"Unexpected error occcured: {e}")
 
