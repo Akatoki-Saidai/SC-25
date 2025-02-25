@@ -1,14 +1,19 @@
 import pigpio
 import time
-import sc_logging
-
-logger = sc_logging.get_logger(__name__)
+from logging import getLogger, StreamHandler  # ログを記録するため
 
 class MotorChannel(object):
     # 1つのモーターの制御クラス
     # inverseとreverseどちらか一方のピンにのみPWM出力を行う
     
-    def __init__(self, pi, pin1, pin2):
+    def __init__(self, pi, pin1, pin2, logger=None):
+        # もしloggerが渡されなかったら，ログの記録先を標準出力に設定
+        if logger is None:
+            logger = getLogger(__name__)
+            logger.addHandler(StreamHandler())
+            logger.setLevel(10)
+        self._logger = logger
+
         self.pi = pi
         self.pin_inverse = pin1
         self.pin_reverse = pin2
@@ -58,7 +63,7 @@ class MotorChannel(object):
             # target_inverse, target_reverse は [0,1]の値。両方同時に0より大きい場合はエラー
             
             if target_inverse > 0 and target_reverse > 0:
-                logger.error(f"pin1:{self.pin_inverse}, pin2:{self.pin_reverse}: Both pin over 0 voltage")
+                self._logger.error(f"pin1:{self.pin_inverse}, pin2:{self.pin_reverse}: Both pin over 0 voltage")
                 raise ValueError(f"pin1:{self.pin_inverse}, pin2:{self.pin_reverse}: Both pin over 0 voltage")
             
             if target_inverse > 0:
@@ -94,7 +99,7 @@ class MotorChannel(object):
                     self._apply_duty()
                     time.sleep(self.delta_time)
         except Exception as e:
-            logger.exception("An error occured!")
+            self._logger.exception("An error occured!")
 
 class Motor(object):
     # 各モーターはMotorChannelで管理
@@ -102,7 +107,7 @@ class Motor(object):
     def __init__(self, right_pin1=20, right_pin2=21, left_pin1=5, left_pin2=7):
         self.pi = pigpio.pi()
         if not self.pi.connected:
-            logger.error("Failed to connect to pigpio daemon in motor")
+            self._logger.error("Failed to connect to pigpio daemon in motor")
             raise RuntimeError("Failed to connect to pigpio daemon in motor")
         
         self.right_motor = MotorChannel(self.pi, right_pin1, right_pin2)
@@ -114,7 +119,7 @@ class Motor(object):
             self.right_motor.update(1, 0)
             self.left_motor.update(1, 0)
         except Exception as e:
-            logger.exception("An error occured!")
+            self._logger.exception("An error occured!")
 
     def stop(self):
         # 惰性ブレーキ
@@ -122,7 +127,7 @@ class Motor(object):
             self.right_motor.update(0, 0)
             self.left_motor.update(0, 0)
         except Exception as e:
-            logger.exception("An error occured!")
+            self._logger.exception("An error occured!")
 
     def brake(self):
         # 短絡ブレーキ(モーターには負荷)
@@ -138,7 +143,7 @@ class Motor(object):
             self.left_motor.current_duty = 0
             self.left_motor.current_direction = 0
         except Exception as e:
-            logger.exception("An error occured!")
+            self._logger.exception("An error occured!")
 
     def leftturn(self):
         # 左回転(右を向く)
@@ -146,7 +151,7 @@ class Motor(object):
             self.right_motor.update(0, 1)
             self.left_motor.update(1, 0)
         except Exception as e:
-            logger.exception("An error occured!")
+            self._logger.exception("An error occured!")
 
     def rightturn(self):
         # 右回転(左を向く)
@@ -154,7 +159,7 @@ class Motor(object):
             self.right_motor.update(1, 0)
             self.left_motor.update(0, 1)
         except Exception as e:
-            logger.exception("An error occured!")
+            self._logger.exception("An error occured!")
 
     def back(self):
         # 後ろ
@@ -162,13 +167,13 @@ class Motor(object):
             self.right_motor.update(0, 1)
             self.left_motor.update(0, 1)
         except Exception as e:
-            logger.exception("An error occured!")
+            self._logger.exception("An error occured!")
 
     def cleanup(self):
         try:
             self.pi.stop()
         except Exception as e:
-            logger.exception("An error occured!")
+            self._logger.exception("An error occured!")
 
 def main():
     motor = Motor(right_pin1=20, right_pin2=21, left_pin1=5, left_pin2=7)

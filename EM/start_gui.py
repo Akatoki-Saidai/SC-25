@@ -1,5 +1,5 @@
 import http.server
-from logging import getLogger, Logger, StreamHandler
+from logging import getLogger, StreamHandler
 import os
 import socket
 import socketserver
@@ -51,7 +51,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         with open("./data_to_browser.json", "r") as f:
             self.wfile.write(f.read().encode('utf-8'))
 
-def start_server(*, logger: Logger = None):
+def start_server(*, logger=None):
     if logger is None:
         logger = logger or getLogger(__name__)
         logger.addHandler(StreamHandler())

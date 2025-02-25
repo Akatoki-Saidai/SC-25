@@ -18,18 +18,18 @@ logger = sc_logging.get_logger(__name__)
 def setup(devices):
     try:
         # BMPをセットアップ
-        devices["bmp"] = BMP280(logger)
+        devices["bmp"] = BMP280(logger=logger)
 
         # BNOをセットアップ
-        devices["bno"] = BNO055()
+        devices["bno"] = BNO055(logger=logger)
         if not devices["bno"].begin():
             logger.critical('Failed to initialize BNO055! Is the sensor connected?')
 
         # GNSS (BE-180) をセットアップ
-        devices["gnss"] = GNSS()
+        devices["gnss"] = GNSS(logger=logger)
 
         # モーターをセットアップ
-        devices["motor"] = Motor(right_pin1=20, right_pin2=21, left_pin1=5, left_pin2=7)
+        devices["motor"] = Motor(right_pin1=20, right_pin2=21, left_pin1=5, left_pin2=7, logger=logger)
 
         # サーボモーターのセットアップ
         devices["servo"] = SG90(pin=26, min_angle=-90, max_angle=90, ini_angle=0, freq=50, logger=logger)

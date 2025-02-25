@@ -11,6 +11,7 @@
 # Dynamically limit sentences types to parse
 
 from math import floor, modf
+from logging import getLogger, StreamHandler  # ログを記録するため
 
 # Import utime or time for fix time handling
 try:
@@ -20,12 +21,6 @@ except ImportError:
     # Otherwise default to time module for non-embedded implementations
     # Should still support millisecond resolution.
     import time
-
-
-# 測定値の出力用
-import sc_logging
-
-logger = sc_logging.get_logger(__name__)
 
 class MicropyGPS(object):
     """GPS NMEA Sentence Parser. Creates object that stores all relevant GPS data and statistics.
@@ -43,7 +38,7 @@ class MicropyGPS(object):
                 'June', 'July', 'August', 'September', 'October',
                 'November', 'December')
 
-    def __init__(self, local_offset=0, location_formatting='ddm'):
+    def __init__(self, local_offset=0, location_formatting='ddm', logger=None):
         """
         Setup GPS Object Status Flags, Internal Data Registers, etc
             local_offset (int): Timzone Difference to UTC
@@ -52,6 +47,13 @@ class MicropyGPS(object):
                                        Degrees Minutes Seconds (dms) - 40° 26′ 46″ N
                                        Decimal Degrees (dd) - 40.446° N
         """
+
+        # もしloggerが渡されなかったら，ログの記録先を標準出力に設定
+        if logger is None:
+            logger = getLogger(__name__)
+            logger.addHandler(StreamHandler())
+            logger.setLevel(10)
+        self._logger = logger
 
         #####################
         # Object Status Flags
@@ -117,7 +119,7 @@ class MicropyGPS(object):
             # if decimal_degrees == 0:
             #     raise(ValueError(f'latitude is abnormal: {decimal_degrees}'))
             
-            logger.debug(f'lat: {decimal_degrees}')  # 測地値を記録
+            self._logger.debug(f'lat: {decimal_degrees}')  # 測地値を記録
             return [decimal_degrees, self._latitude[2]]
         elif self.coord_format == 'dms':
             minute_parts = modf(self._latitude[1])
@@ -136,7 +138,7 @@ class MicropyGPS(object):
             # if decimal_degrees == 0:
             #     raise(ValueError(f'longitude is abnormal: {decimal_degrees}'))
             
-            logger.debug(f'lon: {decimal_degrees}')  # 測地値を記録
+            self._logger.debug(f'lon: {decimal_degrees}')  # 測地値を記録
             return [decimal_degrees, self._longitude[2]]
         elif self.coord_format == 'dms':
             minute_parts = modf(self._longitude[1])
@@ -649,7 +651,7 @@ class MicropyGPS(object):
             # Tell Host no new sentence was parsed
             return None
         except Exception as e:
-            logger.exception("An error occured!")
+            self._logger.exception("An error occured!")
 
     def new_fix_time(self):
         """Updates a high resolution counter with current time when fix is updated. Currently only triggered from
@@ -833,10 +835,10 @@ class MicropyGPS(object):
                 else:  # Default date format
                     date_string = month + '/' + day + '/' + year
 
-            logger.debug(f'gnss_time: {century}{year}-{month}-{day}T{self.timestamp[0]}:{self.timestamp[1]}:{self.timestamp[2]}Z')  # 測定値を記録
+            self._logger.debug(f'gnss_time: {century}{year}-{month}-{day}T{self.timestamp[0]}:{self.timestamp[1]}:{self.timestamp[2]}Z')  # 測定値を記録
             return date_string
         except Exception as e:
-            logger.exception("An error occured!")
+            self._logger.exception("An error occured!")
 
     # All the currently supported NMEA sentences
     supported_sentences = {'GPRMC': gprmc, 'GLRMC': gprmc,
