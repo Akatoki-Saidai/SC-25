@@ -14,6 +14,32 @@ from smbus2 import SMBus
 
 # BMP280を扱うためのクラス(BME280もこのプログラムで扱える)
 class BMP280:
+    # 測定値を受信
+    def read(self):
+        try:
+            # 測定値の生データを受信
+            data = []
+            for i in range (0xF7, 0xF7+8):
+                data.append(self.bus.read_byte_data(self.i2c_address,i))
+            
+            pres_raw = (data[0] << 12) | (data[1] << 4) | (data[2] >> 4)
+            temp_raw = (data[3] << 12) | (data[4] << 4) | (data[5] >> 4)
+            hum_raw  = (data[6] << 8)  |  data[7]
+            
+            # 測定値を℃単位やhPa単位に補正
+            temperature = float(self._compensate_T(temp_raw))
+            pressure = float(self._compensate_P(pres_raw))
+            humidity = float(self._compensate_H(hum_raw))
+
+            # 高度を算出
+            altitude = self._get_altitude(temperature, pressure)
+            
+            self.logger.info(f"pressure : {pressure: 4.3f} hPa, temperature : {temperature: 2.2f} ℃, humidity : {humidity: 3.0f} %, altitude : {altitude: 4.2f} m")
+
+            return temperature, pressure, humidity, altitude
+        except Exception as e:
+            self.logger.exception("An error occured!")
+
     # BMP280の起動時の処理
     def __init__(self, logger = None):
         # もしloggerが渡されなかったら，ログの記録先を標準出力にする
@@ -129,7 +155,7 @@ class BMP280:
 
             # 気圧を複数回測定し，平均値を求める
             for i in range(qnh_size):
-                _, pressure, _ = self.read()
+                _, pressure, _, _ = self.read()
                 qnh_values.append(pressure)
                 time.sleep(0.1)
 
@@ -152,32 +178,6 @@ class BMP280:
         except Exception as e:
             self.logger.exception("An error occured!")
 
-    # 測定値を受信
-    def read(self):
-        try:
-            # 測定値の生データを受信
-            data = []
-            for i in range (0xF7, 0xF7+8):
-                data.append(self.bus.read_byte_data(self.i2c_address,i))
-            
-            pres_raw = (data[0] << 12) | (data[1] << 4) | (data[2] >> 4)
-            temp_raw = (data[3] << 12) | (data[4] << 4) | (data[5] >> 4)
-            hum_raw  = (data[6] << 8)  |  data[7]
-            
-            # 測定値を℃単位やPa単位に補正
-            temperature = float(self._compensate_T(temp_raw))
-            pressure = float(self._compensate_P(pres_raw))
-            humidity = float(self._compensate_H(hum_raw))
-
-            # 高度を算出
-            altitude = self._get_altitude(temperature, pressure)
-            
-            self.logger.info(f"pressure : {pressure/100: 4.3f} hPa, temperature : {temperature: 2.2f} ℃, humidity : {humidity: 3.0f} %, altitude : {altitude: 4.2f} m")
-
-            return temperature, pressure, humidity, altitude
-        except Exception as e:
-            self.logger.exception("An error occured!")
-
     # 気温の生データを℃単位に補正
     def _compensate_T(self, adc_T):
         try:
@@ -190,7 +190,7 @@ class BMP280:
         except Exception as e:
             self.logger.exception("An error occured!")
 
-    # 気圧の生データをPa単位に補正
+    # 気圧の生データをhPa単位に補正
     def _compensate_P(self, adc_P):
         try:
             pressure = 0.0
@@ -213,7 +213,7 @@ class BMP280:
             v2 = ((pressure / 4.0) * self.digP[7]) / 8192.0
             pressure = pressure + ((v1 + v2 + self.digP[6]) / 16.0)  
 
-            return pressure
+            return pressure / 100
         except Exception as e:
             self.logger.exception("An error occured!")
     
