@@ -18,7 +18,7 @@ logger = sc_logging.get_logger(__name__)
 def setup(devices):
     try:
         # BMPをセットアップ
-        devices["bmp"] = BMP280()
+        devices["bmp"] = BMP280(logger)
 
         # BNOをセットアップ
         devices["bno"] = BNO055()
