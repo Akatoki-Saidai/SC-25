@@ -20,12 +20,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-import binascii
-import logging
-import struct
+# import binascii  # UARTによる通信を行うときのみ使用
+from logging import getLogger, StreamHandler  # ログを記録するため
 import time
 import pigpio
-import serial
+# import serial  # UARTによる通信を行うときに使用
 import sc_logging
 
 
@@ -209,34 +208,38 @@ OPERATION_MODE_NDOF_FMC_OFF          = 0X0B
 OPERATION_MODE_NDOF                  = 0X0C
 
 
-logger = sc_logging.get_logger(__name__)
-
 
 class BNO055(object):
+    def __init__(self, rst=None, address=BNO055_ADDRESS_A, i2c_bus=1, serial_port=None, serial_timeout_sec=5, logger=None):
+        """BNO055のセットアップ"""
 
-    def __init__(self, rst=None, address=BNO055_ADDRESS_A, i2c_bus=1, serial_port=None, serial_timeout_sec=5):
-        # Initialize pigpio
-        self.pi = pigpio.pi()
+        # もしloggerが渡されなかったら，ログの記録先を標準出力に設定
+        if logger is None:
+            logger = getLogger(__name__)
+            logger.addHandler(StreamHandler())
+            logger.setLevel(10)
+        self._logger = logger
+
+        self.pi = pigpio.pi()  # pigpioでI2Cを扱う
         if not self.pi.connected:
             raise RuntimeError("Failed to connect to pigpio daemon")
-            
-        # Reset pin setup if 
-        # リセットピン繋がってない
+        
+        # リセットピンの設定(もし使うなら)
         self._rst = rst
         if self._rst is not None:
-            # self.pi.set_mode(self._rst, pigpio.OUTPUT)
-            # self.pi.write(self._rst, 1)  # Set high
+            self.pi.set_mode(self._rst, pigpio.OUTPUT)
+            self.pi.write(self._rst, 1)  # Highにしておく．LowになったらBNO055がリセットされる
             time.sleep(0.65)
             
         self._serial = None
         self._i2c_handle = None
         
         if serial_port is not None:
-            # Serial communication setup
-            self._serial = serial.Serial(serial_port, 115200, timeout=serial_timeout_sec,
-                                       writeTimeout=serial_timeout_sec)
+            """I2CではなくUARTを使う場合のピンのセットアップ"""
+            # self._serial = serial.Serial(serial_port, 115200, timeout=serial_timeout_sec,
+            #                            writeTimeout=serial_timeout_sec)
         else:
-            # I2C communication setup
+            """I2Cを使う場合のピンのセットアップ"""
             try:
                 self._i2c_handle = self.pi.i2c_open(i2c_bus, address)
             except:
@@ -244,87 +247,90 @@ class BNO055(object):
                 raise RuntimeError("Failed to open I2C device")
 
     def _serial_send(self, command, ack=True, max_attempts=5):
-        # Send a serial command and automatically handle if it needs to be resent
-        # because of a bus error.  If ack is True then an ackowledgement is
-        # expected and only up to the maximum specified attempts will be made
-        # to get a good acknowledgement (default is 5).  If ack is False then
-        # no acknowledgement is expected (like when resetting the device).
-        attempts = 0
-        while True:
-            # Flush any pending received data to get into a clean state.
-            self._serial.flushInput()
-            # Send the data.
-            self._serial.write(command)
-            logger.debug('Serial send: 0x{0}'.format(binascii.hexlify(command)))
-            # Stop if no acknowledgment is expected.
-            if not ack:
-                return
-            # Read acknowledgement response (2 bytes).
-            resp = bytearray(self._serial.read(2))
-            logger.debug('Serial receive: 0x{0}'.format(binascii.hexlify(resp)))
-            if resp is None or len(resp) != 2:
-                raise RuntimeError('Timeout waiting for serial acknowledge, is the BNO055 connected?')
-            # Stop if there's no bus error (0xEE07 response) and return response bytes.
-            if not (resp[0] == 0xEE and resp[1] == 0x07):
-                return resp
-            # Else there was a bus error so resend, as recommended in UART app
-            # note at:
-            #   http://ae-bst.resource.bosch.com/media/products/dokumente/bno055/BST-BNO055-AN012-00.pdf
-            attempts += 1
-            if attempts >=  max_attempts:
-                raise RuntimeError('Exceeded maximum attempts to acknowledge serial command without bus error!')
+        """UARTを使ってデータを送受信  I2Cを使用する場合は使わない"""
+        # # Send a serial command and automatically handle if it needs to be resent
+        # # because of a bus error.  If ack is True then an ackowledgement is
+        # # expected and only up to the maximum specified attempts will be made
+        # # to get a good acknowledgement (default is 5).  If ack is False then
+        # # no acknowledgement is expected (like when resetting the device).
+        # attempts = 0
+        # while True:
+        #     # Flush any pending received data to get into a clean state.
+        #     self._serial.flushInput()
+        #     # Send the data.
+        #     self._serial.write(command)
+        #     self._logger.debug('Serial send: 0x{0}'.format(binascii.hexlify(command)))
+        #     # Stop if no acknowledgment is expected.
+        #     if not ack:
+        #         return
+        #     # Read acknowledgement response (2 bytes).
+        #     resp = bytearray(self._serial.read(2))
+        #     self._logger.debug('Serial receive: 0x{0}'.format(binascii.hexlify(resp)))
+        #     if resp is None or len(resp) != 2:
+        #         raise RuntimeError('Timeout waiting for serial acknowledge, is the BNO055 connected?')
+        #     # Stop if there's no bus error (0xEE07 response) and return response bytes.
+        #     if not (resp[0] == 0xEE and resp[1] == 0x07):
+        #         return resp
+        #     # Else there was a bus error so resend, as recommended in UART app
+        #     # note at:
+        #     #   http://ae-bst.resource.bosch.com/media/products/dokumente/bno055/BST-BNO055-AN012-00.pdf
+        #     attempts += 1
+        #     if attempts >=  max_attempts:
+        #         raise RuntimeError('Exceeded maximum attempts to acknowledge serial command without bus error!')
 
     def _write_bytes(self, address, data, ack=True):
+        """I2Cでセンサの特定のレジスタアドレスに複数バイトのデータを書き込み"""
         if self._i2c_handle is not None:
-            # I2C write using pigpio
+            """pigpioを使ってI2Cで書き込み"""
             try:
-                # Create buffer with register address and data
+                # I2Cでレジスタアドレス(センサ内のメモリの番地)とデータを合わせて送ることでデータを書き込む
                 buffer = bytearray([address & 0xFF]) + bytearray(data)
                 self.pi.i2c_write_device(self._i2c_handle, buffer)
             except:
                 raise RuntimeError('I2C write error')
         else:
-            # Serial write (unchanged)
-            command = bytearray(4+len(data))
-            command[0] = 0xAA
-            command[1] = 0x00
-            command[2] = address & 0xFF
-            command[3] = len(data) & 0xFF
-            command[4:] = map(lambda x: x & 0xFF, data)
-            resp = self._serial_send(command, ack=ack)
-            if resp[0] != 0xEE and resp[1] != 0x01:
-                raise RuntimeError('Register write error: 0x{0}'.format(binascii.hexlify(resp)))
+            """UARTを使ってデータを書き込み"""
+            # command = bytearray(4+len(data))
+            # command[0] = 0xAA
+            # command[1] = 0x00
+            # command[2] = address & 0xFF
+            # command[3] = len(data) & 0xFF
+            # command[4:] = map(lambda x: x & 0xFF, data)
+            # resp = self._serial_send(command, ack=ack)
+            # if resp[0] != 0xEE and resp[1] != 0x01:
+            #     raise RuntimeError('Register write error: 0x{0}'.format(binascii.hexlify(resp)))
             
     def _write_byte(self, address, value, ack=True):
-        """Write an 8-bit value to the provided register address."""
+        """I2Cでセンサの特定のレジスタアドレスに1バイトのデータを書き込み"""
         if self._i2c_handle is not None:
-            # I2C write using pigpio
+            """pigpioを使ってI2Cで書き込み"""
             try:
-                # Write register address and value
+                # I2Cでレジスタアドレス(センサ内のメモリの番地)とデータを合わせて送ることでデータを書き込む
                 buffer = bytearray([address & 0xFF, value & 0xFF])
                 self.pi.i2c_write_device(self._i2c_handle, buffer)
             except:
                 raise RuntimeError('I2C write error')
         else:
-            # Serial write (unchanged)
-            command = bytearray(5)
-            command[0] = 0xAA  # Start byte
-            command[1] = 0x00  # Write
-            command[2] = address & 0xFF
-            command[3] = 1     # Length (1 byte)
-            command[4] = value & 0xFF
-            resp = self._serial_send(command, ack=ack)
-            # Verify register write succeeded if there was an acknowledgement.
-            if ack and resp[0] != 0xEE and resp[1] != 0x01:
-                raise RuntimeError('Register write error: 0x{0}'.format(binascii.hexlify(resp)))
+            """UARTを使ってデータを書き込み"""
+            # command = bytearray(5)
+            # command[0] = 0xAA  # Start byte
+            # command[1] = 0x00  # Write
+            # command[2] = address & 0xFF
+            # command[3] = 1     # Length (1 byte)
+            # command[4] = value & 0xFF
+            # resp = self._serial_send(command, ack=ack)
+            # # Verify register write succeeded if there was an acknowledgement.
+            # if ack and resp[0] != 0xEE and resp[1] != 0x01:
+            #     raise RuntimeError('Register write error: 0x{0}'.format(binascii.hexlify(resp)))
 
     def _read_bytes(self, address, length):
+        """I2Cでセンサの特定のレジスタアドレスから複数バイトのデータを読み込み"""
         if self._i2c_handle is not None:
-            # I2C read using pigpio
+            """pigpioを使ってI2Cで読み込み"""
             try:
-                # Write register address first
+                # 最初にレジスタアドレス(センサのメモリ内の番地)を送信
                 self.pi.i2c_write_device(self._i2c_handle, [address & 0xFF])
-                # Then read the data
+                # そして，返信されてくるデータを読み込む
                 count, data = self.pi.i2c_read_device(self._i2c_handle, length)
                 if count != length:
                     raise RuntimeError('I2C read error')
@@ -332,28 +338,29 @@ class BNO055(object):
             except:
                 raise RuntimeError('I2C read error')
         else:
-            # Serial read (unchanged)
-            command = bytearray(4)
-            command[0] = 0xAA
-            command[1] = 0x01
-            command[2] = address & 0xFF
-            command[3] = length & 0xFF
-            resp = self._serial_send(command)
-            if resp[0] != 0xBB:
-                raise RuntimeError('Register read error: 0x{0}'.format(binascii.hexlify(resp)))
-            length = resp[1]
-            resp = bytearray(self._serial.read(length))
-            if resp is None or len(resp) != length:
-                raise RuntimeError('Timeout waiting to read data, is the BNO055 connected?')
-            return resp
+            """UARTを使ってデータを読み込み"""
+            # command = bytearray(4)
+            # command[0] = 0xAA
+            # command[1] = 0x01
+            # command[2] = address & 0xFF
+            # command[3] = length & 0xFF
+            # resp = self._serial_send(command)
+            # if resp[0] != 0xBB:
+            #     raise RuntimeError('Register read error: 0x{0}'.format(binascii.hexlify(resp)))
+            # length = resp[1]
+            # resp = bytearray(self._serial.read(length))
+            # if resp is None or len(resp) != length:
+            #     raise RuntimeError('Timeout waiting to read data, is the BNO055 connected?')
+            # return resp
 
     def _read_byte(self, address):
-        """Read an 8-bit unsigned value from the provided register address."""
+        """I2Cでセンサの特定のレジスタアドレスから1バイトのデータを読み込み"""
         if self._i2c_handle is not None:
+            """pigpioを使ってI2Cで読み込み"""
             try:
-                # Write the register address first
+                # 最初にレジスタアドレス(センサのメモリ内の番地)を送信
                 self.pi.i2c_write_device(self._i2c_handle, [address & 0xFF])
-                # Then read one byte
+                # そして，返信されてくるデータを読み込む
                 count, data = self.pi.i2c_read_device(self._i2c_handle, 1)
                 if count != 1:
                     raise RuntimeError('I2C read error')
@@ -361,18 +368,18 @@ class BNO055(object):
             except:
                 raise RuntimeError('I2C read error')
         else:
-            # Serial read (unchanged)
-            return self._read_bytes(address, 1)[0]
+            """UARTを使ってデータを読み込み"""
+            # return self._read_bytes(address, 1)[0]
         
     def __del__(self):
-        # Cleanup
+        """オブジェクトが削除されたときのクリーンアップ"""
         if self._i2c_handle is not None:
             self.pi.i2c_close(self._i2c_handle)
         if hasattr(self, 'pi'):
             self.pi.stop()
 
     def _read_signed_byte(self, address):
-        # Read an 8-bit signed value from the provided register address.
+        """1バイトの符号付整数の受信"""
         data = self._read_byte(address)
         if data > 127:
             return data - 256
@@ -380,17 +387,18 @@ class BNO055(object):
             return data
 
     def _config_mode(self):
-        # Enter configuration mode.
+        """configurationモードに移行"""
         self.set_mode(OPERATION_MODE_CONFIG)
 
     def _operation_mode(self):
-        # Enter operation mode to read sensor data.
+        """operationモードに移行  センサの値を読み取れるようになる"""
         self.set_mode(self._mode)
 
     def begin(self, mode=OPERATION_MODE_NDOF):
-        """Initialize the BNO055 sensor.  Must be called once before any other
-        BNO055 library functions.  Will return True if the BNO055 was
-        successfully initialized, and False otherwise.
+        """BNO055を初期化する
+
+        他のBNO055の関数を呼び出す前にこの関数を1度だけ呼び出す必要がある
+        正常に初期化できたらTrue, できなかったらFalseを返す
         """
         # Save the desired normal operation mode.
         self._mode = mode
@@ -409,7 +417,7 @@ class BNO055(object):
         self._write_byte(BNO055_PAGE_ID_ADDR, 0)
         # Check the chip ID
         bno_id = self._read_byte(BNO055_CHIP_ID_ADDR)
-        logger.debug('Read chip ID: 0x{0:02X}'.format(bno_id))
+        self._logger.debug('Read chip ID: 0x{0:02X}'.format(bno_id))
         if bno_id != BNO055_ID:
             return False
         # Reset the device.
@@ -670,10 +678,10 @@ class BNO055(object):
             and pitch euler angles in degrees.
             """
             heading, roll, pitch = self._read_vector(BNO055_EULER_H_LSB_ADDR)
-            logger.debug(f"euler: {heading/16.0}, {roll/16.0}, {pitch/16.0}")
+            self._logger.debug(f"euler: {heading/16.0}, {roll/16.0}, {pitch/16.0}")
             return (heading/16.0, roll/16.0, pitch/16.0)
         except Exception as e:
-            logger.exception("An error occured!")
+            self._logger.exception("An error occured!")
 
     def read_magnetometer(self):
         try:
@@ -681,10 +689,10 @@ class BNO055(object):
             in micro-Teslas.
             """
             x, y, z = self._read_vector(BNO055_MAG_DATA_X_LSB_ADDR)
-            logger.debug(f"mag: {x/16.0}, {y/16.0}, {z/16.0}")
+            self._logger.debug(f"mag: {x/16.0}, {y/16.0}, {z/16.0}")
             return (x/16.0, y/16.0, z/16.0)
         except Exception as e:
-            logger.exception("An error occured!")
+            self._logger.exception("An error occured!")
 
     def read_gyroscope(self):
         try:
@@ -692,10 +700,10 @@ class BNO055(object):
             X, Y, Z values in degrees per second.
             """
             x, y, z = self._read_vector(BNO055_GYRO_DATA_X_LSB_ADDR)
-            logger.debug(f"gyro: {x/900.0}, {y/900.0}, {z/900.0}")
+            self._logger.debug(f"gyro: {x/900.0}, {y/900.0}, {z/900.0}")
             return (x/900.0, y/900.0, z/900.0)
         except Exception as e:
-            logger.exception("An error occured!")
+            self._logger.exception("An error occured!")
 
     def read_accelerometer(self):
         try:
@@ -703,10 +711,10 @@ class BNO055(object):
             in meters/second^2.
             """
             x, y, z = self._read_vector(BNO055_ACCEL_DATA_X_LSB_ADDR)
-            logger.debug(f"accel: {x/100.0}, {y/100.0}, {z/100.0}")
+            self._logger.debug(f"accel: {x/100.0}, {y/100.0}, {z/100.0}")
             return (x/100.0, y/100.0, z/100.0)
         except Exception as e:
-            logger.exception("An error occured!")
+            self._logger.exception("An error occured!")
 
     def read_linear_acceleration(self):
         try:
@@ -714,10 +722,10 @@ class BNO055(object):
             not from gravity) reading as a tuple of X, Y, Z values in meters/second^2.
             """
             x, y, z = self._read_vector(BNO055_LINEAR_ACCEL_DATA_X_LSB_ADDR)
-            logger.debug(f"liner_accel: {x/100.0}, {y/100.0}, {z/100.0}")
+            self._logger.debug(f"liner_accel: {x/100.0}, {y/100.0}, {z/100.0}")
             return (x/100.0, y/100.0, z/100.0)
         except Exception as e:
-            logger.exception("An error occured!")
+            self._logger.exception("An error occured!")
 
     def read_gravity(self):
         try:
@@ -725,10 +733,10 @@ class BNO055(object):
             values in meters/second^2.
             """
             x, y, z = self._read_vector(BNO055_GRAVITY_DATA_X_LSB_ADDR)
-            logger.debug(f"grav: {x/100.0}, {y/100.0}, {z/100.0}")
+            self._logger.debug(f"grav: {x/100.0}, {y/100.0}, {z/100.0}")
             return (x/100.0, y/100.0, z/100.0)
         except Exception as e:
-            logger.exception("An error occured!")
+            self._logger.exception("An error occured!")
 
     def read_quaternion(self):
         try:
@@ -738,21 +746,21 @@ class BNO055(object):
             w, x, y, z = self._read_vector(BNO055_QUATERNION_DATA_W_LSB_ADDR, 4)
             # Scale values, see 3.6.5.5 in the datasheet.
             scale = (1.0 / (1<<14))
-            logger.debug(f"quaternion: {x*scale}, {y*scale}, {z*scale}")
+            self._logger.debug(f"quaternion: {x*scale}, {y*scale}, {z*scale}")
             return (x*scale, y*scale, z*scale, w*scale)
         except Exception as e:
-            logger.exception("An error occured!")
+            self._logger.exception("An error occured!")
 
     def read_temp(self):
         try:
             """Return the current temperature in Celsius."""
             temperature = self._read_signed_byte(BNO055_TEMP_ADDR)
-            logger.debug(f"bno_temp: {temperature}")
+            self._logger.debug(f"bno_temp: {temperature}")
             return temperature
         except Exception as e:
-            logger.exception("An error occured!")
+            self._logger.exception("An error occured!")
     
-    # 永遠に測定し続ける
+    # ずっと測定し続ける
     def get_forever(self, data):
         while True:
             try:
@@ -766,7 +774,7 @@ class BNO055(object):
                 # self.read_temp()
                 time.sleep(0.2)
             except Exception as e:
-                logger.exception("An error occured!")
+                self._logger.exception("An error occured!")
     
 def main():
         
