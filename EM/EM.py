@@ -47,6 +47,8 @@ def setup(devices):
         # NiCr線のセットアップ
         devices["pi"].set_mode(NICR_PIN, pigpio.OUTPUT)  # NiCrのピンを出力モードに設定
         devices["pi"].write(NICR_PIN, 0)  # NiCrをオフにしておく
+        # LEDのセットアップ
+        ## 基板にLEDをつけ忘れた...
     except Exception as e:
         logger.exception("An error occured in setup")
 
@@ -64,14 +66,17 @@ def wait_phase(devices, data):
     data["phase"] = "wait"
     # 高度が高くなるまで待つ
     while True:
-        time.sleep(0.1)
-        # 高度が十分高かったら
-        if 20 < data["alt"]:
-            old_alt = data["alt"]
-            time.sleep(3)
-            # 少し待ってもまだ高度が高く，かつ高度が少しでも変化していたら，待機フェーズを終了
-            if 20 < data["alt"] and old_alt != data["alt"]:
-                break
+        try:
+            time.sleep(0.1)
+            # 高度が十分高かったら
+            if 20 < data["alt"]:
+                old_alt = data["alt"]
+                time.sleep(3)
+                # 少し待ってもまだ高度が高く，かつ高度が少しでも変化していたら，待機フェーズを終了
+                if 20 < data["alt"] and old_alt != data["alt"]:
+                    break
+        except Exception as e:
+            logger.exception("An error occured")
 
 # 落下フェーズ
 def fall_phase(devices, data):
@@ -79,20 +84,23 @@ def fall_phase(devices, data):
     data["phase"] = "fall"
     # 落下して静止するまで待つ
     while True:
-        time.sleep(0.1)
-        # 地面近くで静止してたら
-        if data["alt"] < 5 and sum(abs(accel_xyz) for accel_xyz in data["accel"]) < 0.5 and sum(abs(gyro_xyz) for gyro_xyz in data["gyro"]) < 0.05:
-            old_accel, old_gyro = copy.copy(data["accel"]), copy.copy(data["gyro"])
-            time.sleep(3)
-            # 少し待ってもまだ静止して，かつ値が変化していたら
-            if sum(abs(accel_xyz) for accel_xyz in data["accel"]) < 0.5 and sum(abs(gyro_xyz) for gyro_xyz in data["gyro"]) < 0.05 and old_accel != data["accel"] and old_gyro != data["gyro"]:
-                # NiCr線を焼き切る
-                logger.info("nicr turned on")  # ここで音を鳴らしてもいいかも
-                devices["pi"].write(NICR_PIN, 1)  # NiCr ON
-                time.sleep(10)
-                devices["pi"].write(NICR_PIN, 0)  # NiCr OFF
-                logger.info("nicr turned off")
-                break
+        try:
+            time.sleep(0.1)
+            # 地面近くで静止してたら
+            if data["alt"] < 5 and sum(abs(accel_xyz) for accel_xyz in data["accel"]) < 0.5 and sum(abs(gyro_xyz) for gyro_xyz in data["gyro"]) < 0.05:
+                old_accel, old_gyro = copy.copy(data["accel"]), copy.copy(data["gyro"])
+                time.sleep(3)
+                # 少し待ってもまだ静止して，かつ値が変化していたら
+                if sum(abs(accel_xyz) for accel_xyz in data["accel"]) < 0.5 and sum(abs(gyro_xyz) for gyro_xyz in data["gyro"]) < 0.05 and old_accel != data["accel"] and old_gyro != data["gyro"]:
+                    # NiCr線を焼き切る
+                    logger.info("nicr turned on")  # ここで音を鳴らしてもいいかも
+                    devices["pi"].write(NICR_PIN, 1)  # NiCr ON
+                    time.sleep(10)
+                    devices["pi"].write(NICR_PIN, 0)  # NiCr OFF
+                    logger.info("nicr turned off")
+                    break
+        except Exception as e:
+            logger.exception("An error occured")
 
 # 遠距離フェーズ
 def long_phase(devices, data):
@@ -108,14 +116,21 @@ def long_phase(devices, data):
         devices["motor"].stop()
     
     # ゴールから離れている間，ゴールに向かって進む
-    while 5 < data["goal_distance"]:
-        time.sleep(0.1)
-        if data["goal_angle"] < 30 or 330 <= data["goal_angle"]:
-            devices["motor"].accel()  # 前進
-        elif 30 <= data["goal_angle"] < 180:
-            devices["motor"].rightturn()  # 右へ
-        elif 180 <= data["goal_angle"] < 330:
-            devices["motor"].leftturn()  # 左へ
+    while True:
+        try:
+            time.sleep(0.1)
+            if data["goal_angle"] < 30 or 330 <= data["goal_angle"]:
+                devices["motor"].accel()  # 前進
+            elif 30 <= data["goal_angle"] < 180:
+                devices["motor"].rightturn()  # 右へ
+            elif 180 <= data["goal_angle"] < 330:
+                devices["motor"].leftturn()  # 左へ
+            
+            # ゴールに近づいたら近距離フェーズへ
+            if data["goal_distance"] < 5:
+                break
+        except Exception as e:
+            logger.exception("An error occured")
 
 
 # 近距離フェーズ
@@ -123,24 +138,27 @@ def short_phase(devices, data, camera_order):
     logger.info("Entered short phase")
     data["phase"] = "short"
     while True:
-        time.sleep(0.1)
-        if camera_order.value == 0:
-            # コーンが見つからなかったとき
-            devices["motor"].rightturn()
-            time.sleep(0.5)
-            devices["motor"].stop()
-        elif camera_order.value == 1:
-            # コーンが正面にあったとき
-            devices["motor"].accel()
-        elif camera_order.value == 2:
-            # コーンが右にあったとき
-            devices["motor"].rightturn()
-        elif camera_order.value == 3:
-            # コーンが左にあったとき
-            devices["motor"].leftturn()
-        elif camera_order.value == 4:
-            # コーンとの距離が十分に近いとき，ゴールフェーズへ
-            break
+        try:
+            time.sleep(0.1)
+            if camera_order.value == 0:
+                # コーンが見つからなかったとき
+                devices["motor"].rightturn()
+                time.sleep(0.5)
+                devices["motor"].stop()
+            elif camera_order.value == 1:
+                # コーンが正面にあったとき
+                devices["motor"].accel()
+            elif camera_order.value == 2:
+                # コーンが右にあったとき
+                devices["motor"].rightturn()
+            elif camera_order.value == 3:
+                # コーンが左にあったとき
+                devices["motor"].leftturn()
+            elif camera_order.value == 4:
+                # コーンが十分に大きく見えるとき，ゴールフェーズへ
+                break
+        except Exception as e:
+            logger.exception("An error occured")
 
 
 # ゴールフェーズ
