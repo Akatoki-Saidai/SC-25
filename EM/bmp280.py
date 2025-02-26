@@ -34,7 +34,8 @@ class BMP280:
             # 高度を算出
             altitude = self._get_altitude(temperature, pressure)
             
-            self.logger.info(f"pressure : {pressure: 4.3f} hPa, temperature : {temperature: 2.2f} ℃, humidity : {humidity: 3.0f} %, altitude : {altitude: 4.2f} m")
+            self.logger.info(f"pressure : {pressure:4.3f} hPa, temperature : {temperature: 2.2f} ℃, humidity : {humidity:3.0f} %, altitude : {altitude: 4.2f} m")
+            # (f文字列の:の後のスペースには意味があります  https://docs.python.org/ja/3/library/string.html#formatspec )
 
             return temperature, pressure, humidity, altitude
         except Exception as e:

@@ -32,7 +32,11 @@ class GNSS:
                 if 0 < self._pygps.parsed_sentences:
                     lat = self._pygps.latitude[0]
                     lon = self._pygps.longitude[0]
-                    self._logger.debug(f"lat: {lat}, lon: {lon}, alt: {self._pygps.altitude}, speed: {self._pygps.speed}, date: {self._pygps.date}, time: {self._pygps.timestamp}")
+                    date = self._pygps.date
+                    timestamp = self._pygps
+                    datetime_gnss = f"20{date[2]:02}-{date[1]:02}-{date[0]:02}T{timestamp[0]:02}:{timestamp[1]:02}:{timestamp[2]:05.2f}{self._pygps.localoffset:+02}:00"
+                    self._logger.debug(f"lat: {lat}, lon: {lon}, alt: {self._pygps.altitude}, speed: {self._pygps.speed}, gnss_datetime: {datetime_gnss}")
+                    data["datetime_gnss"] = datetime_gnss
                     if lat and lon:
                         data["lat"] = lat
                         data["lon"] = lon
