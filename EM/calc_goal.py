@@ -9,6 +9,9 @@ def calc_goal(data):
     """
 
     goal_latitude, goal_longitude, now_latitude, now_longitude, mag = data["goal_lat"], data["goal_lon"], data["lat"], data["lon"], data["mag"]
+
+    if goal_latitude is None or goal_longitude is None or now_latitude is None or now_longitude is None or mag[0] is None:
+        return
     
     #1.ゴールの緯度経度をCanSat中心のxy座標で表す。
     goal_xy = _calc_xy(goal_latitude,goal_longitude,now_latitude,now_longitude)
