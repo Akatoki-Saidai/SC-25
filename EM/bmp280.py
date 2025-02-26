@@ -34,12 +34,12 @@ class BMP280:
             # 高度を算出
             altitude = self._get_altitude(temperature, pressure)
             
-            self.logger.info(f"pressure : {pressure:4.3f} hPa, temperature : {temperature: 2.2f} ℃, humidity : {humidity:3.0f} %, altitude : {altitude: 4.2f} m")
+            self._logger.info(f"pressure : {pressure:4.3f} hPa, temperature : {temperature: 2.2f} ℃, humidity : {humidity:3.0f} %, altitude : {altitude: 4.2f} m")
             # (f文字列の:の後のスペースには意味があります  https://docs.python.org/ja/3/library/string.html#formatspec )
 
             return temperature, pressure, humidity, altitude
         except Exception as e:
-            self.logger.exception("An error occured!")
+            self._logger.exception("An error occured!")
 
     # BMP280の起動時の処理
     def __init__(self, logger = None):
@@ -48,7 +48,7 @@ class BMP280:
             logger = getLogger(__name__)
             logger.addHandler(StreamHandler())
             logger.setLevel(10)
-        self.logger = logger
+        self._logger = logger
 
         self.BUS_NUMBER  = 1  # I2C1を使用(デフォルト)
         self.I2C_ADDRESS = 0x76  # BMP280のI2Cアドレス．通信先のセンサの電話番号のようなもの．0x76(デフォルト)または0x77
@@ -85,14 +85,14 @@ class BMP280:
             self._writeReg(0xF4,ctrl_meas_reg)
             self._writeReg(0xF5,config_reg)
         except Exception as e:
-            self.logger.exception("An error occured!")
+            self._logger.exception("An error occured!")
     
     # I2CにてBME280にデータを送信
     def _writeReg(self, reg_address, data):
         try:
             self.bus.write_byte_data(self.I2C_ADDRESS,reg_address,data)  # smbusを使用しI2Cでデータを送信 (i2cアドレスは誰宛のデータかを示す，レジスタアドレスはセンサのメモリ内の番地を表す)
         except Exception as e:
-            self.logger.exception("An error occured!")
+            self._logger.exception("An error occured!")
 
     # 補正用パラメータを受信して保存 (測定開始前に必ず実行すること!)
     def _get_calib_param(self):
@@ -146,7 +146,7 @@ class BMP280:
                 if self._digH[i] & 0x8000:
                     self._digH[i] = (-self._digH[i] ^ 0xFFFF) + 1  
         except Exception as e:
-            self.logger.exception("An error occured!")
+            self._logger.exception("An error occured!")
 
     # QNH(高度0m地点の気圧)を測定
     def _get_qnh(self):
@@ -161,9 +161,9 @@ class BMP280:
                 time.sleep(0.1)
 
             self._qnh = sum(qnh_values) / len(qnh_values)
-            self.logger.info(f"qnh: {self._qnh}")
+            self._logger.info(f"qnh: {self._qnh}")
         except Exception as e:
-            self.logger.exception("An error occured!")
+            self._logger.exception("An error occured!")
     
     # 気温と気圧から高度を算出
     def _get_altitude(self, temperature, pressure):
@@ -178,7 +178,7 @@ class BMP280:
 
             return altitude
         except Exception as e:
-            self.logger.exception("An error occured!")
+            self._logger.exception("An error occured!")
 
     # 気温の生データを℃単位に補正
     def _compensate_T(self, adc_T):
@@ -190,7 +190,7 @@ class BMP280:
 
             return temperature
         except Exception as e:
-            self.logger.exception("An error occured!")
+            self._logger.exception("An error occured!")
 
     # 気圧の生データをhPa単位に補正
     def _compensate_P(self, adc_P):
@@ -217,7 +217,7 @@ class BMP280:
 
             return pressure / 100
         except Exception as e:
-            self.logger.exception("An error occured!")
+            self._logger.exception("An error occured!")
     
     # 湿度の生データを%単位に補正
     def _compensate_H(self, adc_H):
@@ -241,7 +241,7 @@ class BMP280:
                 data["temp"], data["press"], _, data["alt"] = self.read()
                 time.sleep(0.1)
             except Exception as e:
-                self.logger.exception("An error occured!")
+                self._logger.exception("An error occured!")
 
 
 if __name__ == '__main__':

@@ -1,8 +1,11 @@
-import time
-import serial
 from logging import getLogger, StreamHandler  # ログを記録するため
-from micropyGPS import MicropyGPS
 from threading import Thread
+import time
+
+from micropyGPS import MicropyGPS
+import serial
+
+import calc_goal
 
 class GNSS:
     def _update(self):
@@ -40,6 +43,7 @@ class GNSS:
                     if lat and lon:
                         data["lat"] = lat
                         data["lon"] = lon
+                        calc_goal.calc_goal(data)  # ゴールまでの距離と向きを計算
             except Exception as e:
                 self._logger.exception("An error occured!")
 

@@ -146,18 +146,18 @@ class Motor(object):
             self._logger.exception("An error occured!")
 
     def leftturn(self):
-        # 左回転(右を向く)
+        """左回転(右モーターを前に動かす)"""
         try:
-            self.right_motor.update(0, 1)
-            self.left_motor.update(1, 0)
+            self.right_motor.update(1, 0)
+            self.left_motor.update(0, 1)
         except Exception as e:
             self._logger.exception("An error occured!")
 
     def rightturn(self):
-        # 右回転(左を向く)
+        """右回転(左モーターを前に動かす)"""
         try:
-            self.right_motor.update(1, 0)
-            self.left_motor.update(0, 1)
+            self.right_motor.update(0, 1)
+            self.left_motor.update(1, 0)
         except Exception as e:
             self._logger.exception("An error occured!")
 

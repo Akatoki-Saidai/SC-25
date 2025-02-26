@@ -23,9 +23,11 @@
 # import binascii  # UARTによる通信を行うときのみ使用
 from logging import getLogger, StreamHandler  # ログを記録するため
 import time
+
 import pigpio
 # import serial  # UARTによる通信を行うときに使用
 
+import calc_goal  # ゴールまでの距離と方向を計算
 
 # I2C addresses
 BNO055_ADDRESS_A                     = 0x28
@@ -771,13 +773,14 @@ class BNO055(object):
                 data["grav"][0], data["grav"][1], data["grav"][2] = self.read_gravity()
                 # self.read_quaternion()
                 # self.read_temp()
+                calc_goal.calc_goal(data)  # ゴールまでの距離と向きを計算
                 time.sleep(0.2)
             except Exception as e:
                 self._logger.exception("An error occured!")
-    
-def main():
-        
+
+if __name__ == "__main__":
     try:
+        # データ取得のサンプル
 
         # Create and configure the BNO sensor connection.  Make sure only ONE of the
         # below 'bno = ...' lines is uncommented:
@@ -816,7 +819,7 @@ def main():
         print('Reading BNO055 data, press Ctrl-C to quit...')
         while True:
 
-            # Read the calibration status, 0=uncalibrated and 3=fully calibrated.
+            # キャリブレーションの状態(これは測定値ではない！), 0=uncalibrated and 3=fully calibrated.
             _sys, gyro, accel, mag = bno.get_calibration_status()
             # Print everything out.
             print('Gyro_cal={0} Accel_cal={1} Mag_cal={2}'.format(gyro, accel, mag))
@@ -827,30 +830,27 @@ def main():
             # Orientation as a quaternion:
             #x,y,z,w = bno.read_quaterion()
             
-            # センサーの温度(←?)
-            # Sensor temperature in degrees Celsius:
+            # 温度(℃)
             # temp_c = bno.read_temp()
 
-            # オイラー角
-            # Read the Euler angles for heading, roll, pitch (all in degrees).
+            # オイラー角(deg)
             # heading, roll, pitch = bno.read_euler()
 
-            # 地磁気
-            # Magnetometer data (in micro-Teslas):
+            # 地磁気(μT)
             mag_x,mag_y,mag_z = bno.read_magnetometer()
             
-            # ジャイロ
-            # Gyroscope data (in degrees per second):
+            # ジャイロ(deg/s)
             gyro_x,gyro_y,gyro_z = bno.read_gyroscope()
 
-            # 加速度
+            # 加速度(m s^-2)
             # Accelerometer data (in meters per second squared):
             # x,y,z = bno.read_accelerometer()
-            # Linear acceleration data (i.e. acceleration from movement, not gravity--
+
+            # 線形加速度(m s^-2)  (全加速度から重力加速度を取り除いたもの)
             # returned in meters per second squared):
             liner_accel_x,liner_accel_y,liner_accel_z = bno.read_linear_acceleration()
-            # Gravity acceleration data (i.e. acceleration just from gravity--returned
-            # in meters per second squared):
+
+            # 重力加速度(m s^-2)
             gravity_x,gravity_y,gravity_z = bno.read_gravity()
 
             print(f"magnetometer: \nmag_x:{mag_x:.4f}  mag_y:{mag_y:.4f}  mag_z:{mag_z:.4f}")
@@ -859,10 +859,7 @@ def main():
             print(f"gravity: \ngravity_x:{gravity_x:.4f}  gravity_y:{gravity_y:.4f}  gravity_z:{gravity_z:.4f}")
             print()
 
-            # time.sleep(1)
+            time.sleep(1)
 
     except Exception as e:
         print(f"An error occured in BNO055: {e}")
-
-if __name__ == "__main__":
-    main()
