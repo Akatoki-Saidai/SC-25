@@ -7,7 +7,7 @@ import time  # sleepなどを使うため
 from logging import getLogger, StreamHandler  # ログを記録するため
 
 # smbus2がインストールされていない場合は仮想環境で以下を実行
-# sudo apt-get update
+# sudo apt update
 # sudo apt install -y python-smbus
 # sudo pip install smbus2
 from smbus2 import SMBus
