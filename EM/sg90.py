@@ -110,4 +110,4 @@ if __name__ == "__main__":
         sg90.set_angle() = angle
         time.sleep(3)
     
-    del sg90  # サーボモータをストップ(delしなくても勝手に止まる)
+    #del sg90  # サーボモータをストップ(delしなくても勝手に止まる)
