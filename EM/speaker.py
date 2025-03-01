@@ -1,4 +1,4 @@
-# スピーカー設定をPWM出力可能にしておく(/boot/firmware/config.txtの末尾に"dtoverlay=audremap,pins_19_18"を追加)
+# スピーカー設定をPWM出力可能にしておく(/boot/firmware/config.txtの末尾に"dtoverlay=audremap,pins_18_19"を追加)
 
 import subprocess
 import time
@@ -28,12 +28,12 @@ class Speaker:
     def audio_play(self, file_name):
         try:
             # logger.log('Music play')
-            audio_path = f"/home/omusubi0/SC-25/Sound/{file_name}"
+            audio_path = f"/home/omusubi/SC-25/Sound/{file_name}"
 
             if (self.proces_aplay.poll() != None and os.path.exists(audio_path)):
                 # 音楽ファイルはSC-25内musicフォルダに入れておく
                 # サウンドカードはaplay -lでbcm2835 Headphonesの番号を選択
-                self.proces_aplay = subprocess.Popen(f"aplay --device=hw:0,0 {audio_path}", shell=True)
+                self.proces_aplay = subprocess.Popen(f"aplay --device=hw:1,0 {audio_path}", shell=True)
 
                 self._logger.log("Play music")
 
