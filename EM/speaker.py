@@ -1,4 +1,4 @@
-# スピーカー設定をPWM出力可能にしておく(/boot/firmware/config.txtの末尾に"dtoverlay=audremap,pins_19_18"を追加)
+# スピーカー設定をPWM出力可能にしておく(/boot/firmware/config.txtの末尾に"dtoverlay=audiomap,pins_19_18"を追加)
 
 import subprocess
 import time
