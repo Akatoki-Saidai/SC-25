@@ -50,20 +50,27 @@ def setup(devices):
         # LEDのセットアップ
         ## 基板にLEDをつけ忘れた...
     except Exception as e:
-        logger.exception("An error occured in setup")
+        logger.exception(f"An error occured in setup device: {e}")
 
 # カメラの処理が重いので，カメラだけ完全に分離してセットアップ+撮影
 def camera_setup_and_start(camera_order, show=False):
-    camera = Camera(logger, show=show, save=True)  # セットアップ
-    camera.start()  # 起動
-    # カメラで画像認識し続ける
-    camera_thread = Thread(target=camera.get_forever, args=(camera_order, show,))
-    camera_thread.start()
+    try:
+        camera = Camera(logger, show=show, save=True)  # セットアップ
+        camera.start()  # 起動
+        # カメラで画像認識し続ける
+        camera_thread = Thread(target=camera.get_forever, args=(camera_order, show,))
+        camera_thread.start()
+    except Exception as e:
+        logger.exception(f"An error occured in setup and start camera: {e}")
 
 # 待機フェーズ
 def wait_phase(devices, data):
-    logger.info("Entered wait phase")
-    data["phase"] = "wait"
+    try:
+        logger.info("Entered wait phase")
+        data["phase"] = "wait"
+    except Exception as e:
+        logger.exception(f"An error occured in Entering wait phase")
+    
     # 高度が高くなるまで待つ
     while True:
         try:
@@ -76,12 +83,16 @@ def wait_phase(devices, data):
                 if 20 < data["alt"] and old_alt != data["alt"]:
                     break
         except Exception as e:
-            logger.exception("An error occured")
+            logger.exception("An error occured in wait phase")
 
 # 落下フェーズ
 def fall_phase(devices, data):
-    logger.info("Entered fall phase")
-    data["phase"] = "fall"
+    try:
+        logger.info("Entered fall phase")
+        data["phase"] = "fall"
+    except Exception as e:
+        logger.exception(f"An error occured in Entering wait phase: {e}")
+                         
     # 落下して静止するまで待つ
     while True:
         try:
@@ -100,20 +111,27 @@ def fall_phase(devices, data):
                     logger.info("nicr turned off")
                     break
         except Exception as e:
-            logger.exception("An error occured")
+            logger.exception(f"An error occured in fall phase: {e}")
 
 # 遠距離フェーズ
 def long_phase(devices, data):
-    logger.info("Entered long phase")
-    data["phase"] = "long"
+    try:
+        logger.info("Entered long phase")
+        data["phase"] = "long"
+    except Exception as e:
+        logger.exception(f"An error occured in Entering long phase: {e}")
+
     # 機体がひっくり返っていたら回る
-    if data["gyro"][2] < 0:  #################要変更#####################本当に負なのか，z軸は2なのか
-        start_time = time.time()
-        devices["motor"].accel()
-        logger.info("muki_hantai")
-        while data["gyro"][2] < 0 and time.time()-start_time < 5:  #################要変更#####################本当に負なのか，z軸は2なのか
-            pass
-        devices["motor"].stop()
+    try:
+        if data["gyro"][2] < 0:  #################要変更#####################本当に負なのか，z軸は2なのか
+            start_time = time.time()
+            devices["motor"].accel()
+            logger.info("muki_hantai")
+            while data["gyro"][2] < 0 and time.time()-start_time < 5:  #################要変更#####################本当に負なのか，z軸は2なのか
+                pass
+            devices["motor"].stop()
+    except Exception as e:
+        logger.exception(f"An error occured in muki_hantai: {e}")
     
     # ゴールから離れている間，ゴールに向かって進む
     while True:
@@ -130,13 +148,16 @@ def long_phase(devices, data):
             if data["goal_distance"] < 5:
                 break
         except Exception as e:
-            logger.exception("An error occured")
-
+            logger.exception(f"An error occured in long phase approaching: {e}")
 
 # 近距離フェーズ
 def short_phase(devices, data, camera_order):
-    logger.info("Entered short phase")
-    data["phase"] = "short"
+    try:
+        logger.info("Entered short phase")
+        data["phase"] = "short"
+    except Exception as e:
+        logger.exception(f"An error occured in entering short phase: {e}")
+
     while True:
         try:
             time.sleep(0.1)
@@ -158,15 +179,19 @@ def short_phase(devices, data, camera_order):
                 # コーンが十分に大きく見えるとき，ゴールフェーズへ
                 break
         except Exception as e:
-            logger.exception("An error occured")
+            logger.exception(f"An error occured in short phase moving: {e}")
 
 
 # ゴールフェーズ
 def goal_phase(devices, data):
-    logger.info("Entered goal phase")
-    data["phase"] = "goal"
-    while True:
-        time.sleep(1)
+    try:
+        logger.info("Entered goal phase")
+        data["phase"] = "goal"
+        while True:
+            time.sleep(1)
+    except Exception as e:
+        logger.exception(f"An error occured in goal phase: {e}")
+
 
 if __name__ == "__main__":
     # 使用するデバイス  変数の中身をこの後変更する
