@@ -1,36 +1,48 @@
-# スピーカー設定をPWM出力可能にしておく(/boot/firmware/config.txtの末尾に"dtoverlay=audremap,pins_18_19"を追加)
+# スピーカー設定をPWM出力可能にしておく(/boot/firmware/config.txtの末尾に"dtoverlay=audremap,pins_19_18"を追加)
 
 import subprocess
 import time
 import os
-import sc_logging
+# import sc_logging
+from logging import getLogger, StreamHandler  # ログを記録するため
 
-logger = sc_logging.get_logger(__name__)
+# logger = sc_logging.get_logger(__name__)
 
 class C():
     def poll(self):
         return 0  # まだ開始していない
-proces_aplay = C()
 
-# .poll()は終了していなかったらNone，終了していたらそのステータスを返す．
-def audio_play(audio_path):
-    try:
-        global proces_aplay
-        # logger.log('Music play')
-        if (proces_aplay.poll() != None and os.path.exists(audio_path)):
-            proces_aplay = subprocess.Popen(f"aplay --device=hw:1,0 {audio_path}", shell=True)
+class Speaker:
+    def __init__(self):
+        # もしloggerが渡されなかったら，ログの記録先を標準出力に設定
+        if logger is None:
+            logger = getLogger(__name__)
+            logger.addHandler(StreamHandler())
+            logger.setLevel(10)
+        self._logger = logger
+        
+        # スピーカーを演奏終了状態に設定
+        self.proces_aplay = C()
 
-            logger.log("Play music")
+    # .poll()は終了していなかったらNone，終了していたらそのステータスを返す．
+    def audio_play(self, audio_path):
+        try:
+            # logger.log('Music play')
+            if (self.proces_aplay.poll() != None and os.path.exists(audio_path)):
+                self.proces_aplay = subprocess.Popen(f"aplay --device=hw:1,0 {audio_path}", shell=True)
 
-        else:
-            logger.warning("already playing music now. canceled playing.")
-    except Exception as e:
-            logger.exception()
+                self._logger.log("Play music")
+
+            else:
+                self._logger.warning("already playing music now. canceled playing.")
+        except Exception as e:
+                self._logger.exception("An error occured in playing speaker")
 
 
 if __name__ == '__main__':
     try:
-        audio_play("/home/jaxai/Desktop/Megalovania_Trim.wav")
+        speaker = Speaker()
+        speaker.audio_play("/home/omusubi0/SC-25/music/Megalovania_Trim.wav")
         time.sleep(3)
 
     except Exception as e:
