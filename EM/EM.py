@@ -42,7 +42,7 @@ def setup(devices):
         # サーボモーターのセットアップ
         devices["servo"] = SG90(pin=26, min_angle=-90, max_angle=90, ini_angle=0, freq=50, logger=logger)
 
-        # pigpioのセットアップ
+        # pigpioのセットアップ(omusubi0はpigpio自動有効化設定済)
         devices["pi"] = pigpio.pi()
         # NiCr線のセットアップ
         devices["pi"].set_mode(NICR_PIN, pigpio.OUTPUT)  # NiCrのピンを出力モードに設定
