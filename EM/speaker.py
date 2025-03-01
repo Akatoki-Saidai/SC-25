@@ -13,7 +13,7 @@ class C():
         return 0  # まだ開始していない
 
 class Speaker:
-    def __init__(self):
+    def __init__(self, logger=None):
         # もしloggerが渡されなかったら，ログの記録先を標準出力に設定
         if logger is None:
             logger = getLogger(__name__)
