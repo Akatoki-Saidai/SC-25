@@ -28,7 +28,7 @@ class Speaker:
     def audio_play(self, file_name):
         try:
             # logger.log('Music play')
-            audio_path = f"/home/omusubi0/SC-25/music/{file_name}"
+            audio_path = f"/home/omusubi0/SC-25/Sound/{file_name}"
 
             if (self.proces_aplay.poll() != None and os.path.exists(audio_path)):
                 # 音楽ファイルはSC-25内musicフォルダに入れておく
