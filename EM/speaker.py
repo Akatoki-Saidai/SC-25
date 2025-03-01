@@ -25,10 +25,13 @@ class Speaker:
         self.proces_aplay = C()
 
     # .poll()は終了していなかったらNone，終了していたらそのステータスを返す．
-    def audio_play(self, audio_path):
+    def audio_play(self, file_name):
         try:
             # logger.log('Music play')
+            audio_path = f"/home/omusubi0/SC-25/music/{file_name}"
+
             if (self.proces_aplay.poll() != None and os.path.exists(audio_path)):
+                # 音楽ファイルはSC-25内musicフォルダに入れておく
                 self.proces_aplay = subprocess.Popen(f"aplay --device=hw:1,0 {audio_path}", shell=True)
 
                 self._logger.log("Play music")
@@ -38,11 +41,10 @@ class Speaker:
         except Exception as e:
                 self._logger.exception("An error occured in playing speaker")
 
-
 if __name__ == '__main__':
     try:
         speaker = Speaker()
-        speaker.audio_play("/home/omusubi0/SC-25/music/Megalovania_Trim.wav")
+        speaker.audio_play("Megalovania_Trim.wav")
         time.sleep(3)
 
     except Exception as e:
