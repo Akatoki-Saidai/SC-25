@@ -26,14 +26,14 @@ class Camera:
             config = self._picam2.create_preview_configuration({"format": 'XRGB8888', "size": (320, 240)})
             self._picam2.configure(config)  # カメラの初期設定
         except Exception as e:
-            self._logger.exception("An error occured!")
+            self._logger.exception("An error occured in setup camera")
     
     def start(self):
         """カメラを起動"""
         try:
             self._picam2.start()
         except Exception as e:
-            self._logger.exception("An error occured!")
+            self._logger.exception("An error occured in starting camera")
 
     def yolo_detect(self, frame):
         """YOLOによる画像認識でカラーコーンを探す"""
@@ -92,7 +92,7 @@ class Camera:
 
             return yolo_xylist, center_x
         except Exception as e:
-            self._logger.exception("An error occured!")
+            self._logger.exception("An error occured in reasoning by yolo")
 
 
     def red_detect(self, frame):
@@ -113,7 +113,7 @@ class Camera:
 
             return mask1 + mask2
         except Exception as e:
-            self._logger.exception("An error occured!")
+            self._logger.exception("An error occured in masking red")
     
     def analyze_red(self, mask):
         """red_detectで探した赤色のエリアの位置と大きさを分析"""
@@ -143,7 +143,7 @@ class Camera:
 
             return area, center_x, center_y
         except Exception as e:
-            self._logger.exception("An error occured!")
+            self._logger.exception("An error occured i analyzing red")
 
 
     def judge_cone(self, frame, yolo_xylist, yolo_center_x, red_area):
@@ -193,7 +193,7 @@ class Camera:
 
             return frame, camera_order
         except Exception as e:
-            self._logger.exception("An error occured!")
+            self._logger.exception("An error occured in judging colorcone")
     
     
     def result(self, *, show = False, save=False):
@@ -233,20 +233,27 @@ class Camera:
                 self._logger.exception("An error occured in judgement")
 
             # 結果表示
-            if (show == True):
-                cv2.imshow('kekka', frame)
-                if cv2.waitKey(25) & 0xFF == ord('q'):
-                    cv2.destroyAllWindows()
-                    self._logger.log('q interrupted direction by camera')
+            try:
+                if (show == True):
+                    cv2.imshow('kekka', frame)
+                    if cv2.waitKey(25) & 0xFF == ord('q'):
+                        cv2.destroyAllWindows()
+                        self._logger.log('q interrupted direction by camera')
+            except Exception as e:
+                self._logger.exception(f"An error occured interrupt q")
             
             # 画像を保存
-            if (save == True):
-                cv2.imwrite('camera_temp.jpg', frame)
-                os.rename('camera_temp.jpg', 'camera.jpg')
+            try:
+                if (save == True):
+                    cv2.imwrite('camera_temp.jpg', frame)
+                    os.rename('camera_temp.jpg', 'camera.jpg')
+            except Exception as e:
+                self._logger.exception(f"An error occured in saving camera jpg: {e}")
 
             return camera_order
+        
         except Exception as e:
-            self._logger.exception("An error occured!")
+            self._logger.exception("An error occured in result")
     
     # ずっとカメラによる画像認識をし続けます．
     # このメッソッドはmultipleprocessingで呼び出されることを想定しています
@@ -255,7 +262,7 @@ class Camera:
             try:
                 camera_order.value = self.result(show=show)
             except Exception as e:
-                self._logger.exception("An error occured!")
+                self._logger.exception("An error occured in camera get_forever")
     
 
 if __name__ == '__main__':

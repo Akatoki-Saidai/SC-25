@@ -45,7 +45,7 @@ class GNSS:
                         data["lon"] = lon
                         calc_goal.calc_goal(data)  # ゴールまでの距離と向きを計算
             except Exception as e:
-                self._logger.exception("An error occured!")
+                self._logger.exception(f"An error occured in be-180 get_forever: {e}")
 
 if __name__ == "__main__":
     gnss = GNSS()

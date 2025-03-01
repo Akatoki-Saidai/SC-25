@@ -682,7 +682,7 @@ class BNO055(object):
             self._logger.debug(f"euler: {heading/16.0}, {roll/16.0}, {pitch/16.0}")
             return (heading/16.0, roll/16.0, pitch/16.0)
         except Exception as e:
-            self._logger.exception("An error occured!")
+            self._logger.exception("An error occured in bno055 reading euler")
 
     def read_magnetometer(self):
         try:
@@ -693,7 +693,7 @@ class BNO055(object):
             self._logger.debug(f"mag: {x/16.0}, {y/16.0}, {z/16.0}")
             return (x/16.0, y/16.0, z/16.0)
         except Exception as e:
-            self._logger.exception("An error occured!")
+            self._logger.exception("An error occured in bno055 reading magnetometer")
 
     def read_gyroscope(self):
         try:
@@ -704,7 +704,7 @@ class BNO055(object):
             self._logger.debug(f"gyro: {x/900.0}, {y/900.0}, {z/900.0}")
             return (x/900.0, y/900.0, z/900.0)
         except Exception as e:
-            self._logger.exception("An error occured!")
+            self._logger.exception("An error occured in bno055 reading gyroscope")
 
     def read_accelerometer(self):
         try:
@@ -715,7 +715,7 @@ class BNO055(object):
             self._logger.debug(f"accel: {x/100.0}, {y/100.0}, {z/100.0}")
             return (x/100.0, y/100.0, z/100.0)
         except Exception as e:
-            self._logger.exception("An error occured!")
+            self._logger.exception("An error occured in bno055 reading accelerometer")
 
     def read_linear_acceleration(self):
         try:
@@ -726,7 +726,7 @@ class BNO055(object):
             self._logger.debug(f"liner_accel: {x/100.0}, {y/100.0}, {z/100.0}")
             return (x/100.0, y/100.0, z/100.0)
         except Exception as e:
-            self._logger.exception("An error occured!")
+            self._logger.exception("An error occured in bno055 reading linear acceleration")
 
     def read_gravity(self):
         try:
@@ -737,7 +737,7 @@ class BNO055(object):
             self._logger.debug(f"grav: {x/100.0}, {y/100.0}, {z/100.0}")
             return (x/100.0, y/100.0, z/100.0)
         except Exception as e:
-            self._logger.exception("An error occured!")
+            self._logger.exception("An error occured in bno055 reading gravity")
 
     def read_quaternion(self):
         try:
@@ -750,7 +750,7 @@ class BNO055(object):
             self._logger.debug(f"quaternion: {x*scale}, {y*scale}, {z*scale}")
             return (x*scale, y*scale, z*scale, w*scale)
         except Exception as e:
-            self._logger.exception("An error occured!")
+            self._logger.exception("An error occured in bno055 reading quaternion")
 
     def read_temp(self):
         try:
@@ -759,7 +759,7 @@ class BNO055(object):
             self._logger.debug(f"bno_temp: {temperature}")
             return temperature
         except Exception as e:
-            self._logger.exception("An error occured!")
+            self._logger.exception("An error occured in bno055 reading temperture")
     
     # ずっと測定し続ける
     def get_forever(self, data):
@@ -776,7 +776,7 @@ class BNO055(object):
                 calc_goal.calc_goal(data)  # ゴールまでの距離と向きを計算
                 time.sleep(0.2)
             except Exception as e:
-                self._logger.exception("An error occured!")
+                self._logger.exception(f"An error occured in bno055 get_forever: {e}")
 
 if __name__ == "__main__":
     try:

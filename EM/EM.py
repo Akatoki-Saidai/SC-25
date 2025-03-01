@@ -47,6 +47,9 @@ def setup(devices):
         # NiCr線のセットアップ
         devices["pi"].set_mode(NICR_PIN, pigpio.OUTPUT)  # NiCrのピンを出力モードに設定
         devices["pi"].write(NICR_PIN, 0)  # NiCrをオフにしておく
+
+        # スピーカーのセットアップ
+        devices["speaker"] = Speaker()
         # LEDのセットアップ
         ## 基板にLEDをつけ忘れた...
     except Exception as e:
@@ -69,7 +72,7 @@ def wait_phase(devices, data):
         logger.info("Entered wait phase")
         data["phase"] = "wait"
     except Exception as e:
-        logger.exception(f"An error occured in Entering wait phase")
+        logger.exception(f"An error occured in Entering wait phase:{e}")
     
     # 高度が高くなるまで待つ
     while True:
@@ -83,7 +86,7 @@ def wait_phase(devices, data):
                 if 20 < data["alt"] and old_alt != data["alt"]:
                     break
         except Exception as e:
-            logger.exception("An error occured in wait phase")
+            logger.exception(f"An error occured in wait phase:{e}")
 
 # 落下フェーズ
 def fall_phase(devices, data):
@@ -201,7 +204,8 @@ if __name__ == "__main__":
         "gnss": None,
         "motor": None,
         "servo": None,
-        "pi": None
+        "pi": None,
+        "speaker":None
     }
 
     # 各デバイスのセットアップ  devicesの中に各デバイスのインスタンスを入れる
