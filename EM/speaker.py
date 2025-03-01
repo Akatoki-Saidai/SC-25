@@ -32,7 +32,8 @@ class Speaker:
 
             if (self.proces_aplay.poll() != None and os.path.exists(audio_path)):
                 # 音楽ファイルはSC-25内musicフォルダに入れておく
-                self.proces_aplay = subprocess.Popen(f"aplay --device=hw:1,0 {audio_path}", shell=True)
+                # サウンドカードはaplay -lでbcm2835 Headphonesの番号を選択
+                self.proces_aplay = subprocess.Popen(f"aplay --device=hw:2,0 {audio_path}", shell=True)
 
                 self._logger.log("Play music")
 
