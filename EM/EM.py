@@ -12,7 +12,7 @@ from gnss import GNSS
 from sg90 import SG90
 import sc_logging
 from motor import Motor
-import speaker
+from speaker import Speaker
 import start_gui
 
 logger = sc_logging.get_logger(__name__)
@@ -48,8 +48,8 @@ def setup(devices):
         devices["pi"].set_mode(NICR_PIN, pigpio.OUTPUT)  # NiCrのピンを出力モードに設定
         devices["pi"].write(NICR_PIN, 0)  # NiCrをオフにしておく
 
-        # スピーカーのセットアップ
-        devices["speaker"] = Speaker()
+        # スピーカーのセットアップ (ピンは19, 18)
+        devices["speaker"] = Speaker(logger=logger)
         # LEDのセットアップ
         ## 基板にLEDをつけ忘れた...
     except Exception as e:
