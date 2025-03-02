@@ -4,5 +4,4 @@ git pull
 cp ./ ../../SC-25 -r -f -u
 cd ../../SC-25
 . SC-25/bin/activate
-sudo pigpiod
 cd EM
