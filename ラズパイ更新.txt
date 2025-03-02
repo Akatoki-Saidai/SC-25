@@ -1,7 +1,6 @@
 deactivate
-cd /home/omusubi/github/SC-25
+cd /home/omusubi/SC-25
+git fetch
 git pull
-cp ./ ../../SC-25 -r -f -u
-cd ../../SC-25
 . SC-25/bin/activate
 cd EM
