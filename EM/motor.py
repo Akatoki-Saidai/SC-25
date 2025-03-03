@@ -20,7 +20,6 @@ class MotorChannel(object):
         self.MOTOR_RANGE = 100  # 0～255の範囲で設定
         self.FREQUENCY = 4000  # pigpioのデフォルトサンプリングレートは5→8000,4000,2000,1600,1000,800,500,400,320のいずれか
         self.delta_duty = 0.1
-        self.delta_time = 0.05
 
         # PWM設定
         self.pi.set_PWM_frequency(self.pin_inverse, self.FREQUENCY)
@@ -32,6 +31,9 @@ class MotorChannel(object):
         # 初期状態は停止
         self.current_duty = 0.0   # 0～1の割合
         self.current_direction = 0  # 1: 正転, -1: 逆転, 0: 停止
+        self.target_duty = 0.0
+        self.target_direction = 0
+        self.update_mode = 0
         self._apply_duty()
     
     def __del__(self):
@@ -57,77 +59,125 @@ class MotorChannel(object):
             self.pi.set_PWM_dutycycle(self.pin_inverse, 0)
             self.pi.set_PWM_dutycycle(self.pin_reverse, 0)
 
-    def update(self, target_inverse, target_reverse):
-        try:
-            # duty を漸進的に更新
-            # target_inverse, target_reverse は [0,1]の値。両方同時に0より大きい場合はエラー
-            
-            if target_inverse > 0 and target_reverse > 0:
-                self._logger.error(f"pin1:{self.pin_inverse}, pin2:{self.pin_reverse}: Both pin over 0 voltage")
-                raise ValueError(f"pin1:{self.pin_inverse}, pin2:{self.pin_reverse}: Both pin over 0 voltage")
-            
-            if target_inverse > 0:
-                target_direction = 1
-                target_duty = target_inverse
-            elif target_reverse > 0:
-                target_direction = -1
-                target_duty = target_reverse
+
+    def set_target(self, target_inverse, target_reverse):
+        # 目標のduty値を設定
+        # target_inverse, target_reverse は [0,1]の値。両方同時に0より大きい場合はエラー
+
+        if target_inverse > 0 and target_reverse > 0:
+            self._logger.error(f"pin1:{self.pin_inverse}, pin2:{self.pin_reverse}: Both pin over 0 voltage: {target_inverse}, {target_reverse}")    
+            raise ValueError(f"pin1:{self.pin_inverse}, pin2:{self.pin_reverse}: Both pin over 0 voltage: {target_inverse}, {target_reverse}")
+        
+        if target_inverse > 0:
+            self.target_direction = 1
+            self.target_duty = target_inverse
+        elif target_reverse > 0:
+            self.target_direction = -1
+            self.target_duty = target_reverse
+        else:
+            self.target_direction = 0
+            self.target_duty = 0.0
+
+        # 方向が変わる場合は、まず停止後に加速するので update_mode を "accelerate" とする
+        if self.current_direction != self.target_direction:
+            if self.target_duty > 0:
+                self.update_mode = 1
             else:
-                target_direction = 0
-                target_duty = 0.0
+                self.update_mode = 0
+                
+        else:
+            # 同じ方向なら、現在値と目標値の大小でモードを判定
+            if self.target_duty > self.current_duty:
+                self.update_mode = 1
+            elif self.target_duty < self.current_duty:
+                self.update_mode = -1
+            else:
+                self.update_mode = 0
 
-            # 入力と現行の+-が違ったら現行側を0に直す
-            if self.current_direction != target_direction:
-                while self.current_duty > 0:
-                    self.current_duty = max(self.current_duty - self.delta_duty, 0)
-                    self._apply_duty()
-                    time.sleep(self.delta_time)
-                self.current_direction = target_direction
+    def update_step(self):
+        # 1ステップ分現在のdutyを目標へ変更
+        try:
+            if self.current_direction != self.target_direction:
+                if self.current_duty > 0:
+                    self.current_duty = max(self.current_duty - self.step, 0)
+                else:
+                    self.current_direction = self.target_direction
 
-            # 全てのピンは現在0(の予定)
-            # 現在の duty から目標 duty へ漸進的に変化
-            if target_duty > self.current_duty:
+            else:
+                # 全てのピンは現在0(の予定)
+                # 現在の duty から目標 duty 1ステップ分変化
                 # 加速
-                while self.current_duty < target_duty:
-                    self.current_duty = min(self.current_duty + self.delta_duty, target_duty)
-                    self._apply_duty()
-                    time.sleep(self.delta_time)
-            elif target_duty < self.current_duty:
+                if self.current_duty < self.target_duty:
+                    self.current_duty = min(self.current_duty + self.step, self.target_duty)
                 # 減速
-                while self.current_duty > target_duty:
-                    self.current_duty = max(self.current_duty - self.delta_duty, target_duty)
-                    self._apply_duty()
-                    time.sleep(self.delta_time)
+                elif self.current_duty > self.target_duty:
+                    self.current_duty = max(self.current_duty - self.step, self.target_duty)
+
+            self._apply_duty()
+        
         except Exception as e:
-            self._logger.exception("An error occured!")
+            self._logger.exception("An error occured in motor update_step")
+
+    
+    def at_target(self):
+        # 現在の duty が目標値に達しているかを判定
+
+        if self.current_direction != self.target_direction:
+            return False
+        if self.target_duty == 0:
+            return self.current_duty == 0
+        if self.update_mode > 0:
+            return self.current_duty >= self.target_duty
+        elif self.update_mode < 0:
+            return self.current_duty <= self.target_duty
+        
+        return self.current_duty == self.target_duty
 
 class Motor(object):
     # 各モーターはMotorChannelで管理
     
-    def __init__(self, right_pin1=20, right_pin2=21, left_pin1=5, left_pin2=7):
+    def __init__(self, right_pin1=21, right_pin2=20, left_pin1=7, left_pin2=5, logger=None):
+        # もしloggerが渡されなかったら，ログの記録先を標準出力に設定
+        if logger is None:
+            logger = getLogger(__name__)
+            logger.addHandler(StreamHandler())
+            logger.setLevel(10)
+        self._logger = logger
+        
         self.pi = pigpio.pi()
         if not self.pi.connected:
             self._logger.error("Failed to connect to pigpio daemon in motor")
             raise RuntimeError("Failed to connect to pigpio daemon in motor")
         
-        self.right_motor = MotorChannel(self.pi, right_pin1, right_pin2)
-        self.left_motor  = MotorChannel(self.pi, left_pin1, left_pin2)
+        self.right_motor = MotorChannel(self.pi, right_pin1, right_pin2, logger=self._logger)
+        self.left_motor  = MotorChannel(self.pi, left_pin1, left_pin2, logger=self._logger)
+        self.delta_time = 0.05
+
+    
+    def Speedup(self, right_inverse, right_reverse, left_inverse, left_reverse):
+        # 両モーターの目標値を設定、同時に更新
+        
+        self.right_motor.set_target(right_inverse, right_reverse)
+        self.left_motor.set_target(left_inverse, left_reverse)
+        # 両モーターが目標状態に達するまで同時に1ステップずつ更新
+        while not (self.right_motor.at_target() and self.left_motor.at_target()):
+            self.right_motor.update_step()
+            self.left_motor.update_step()
+            time.sleep(self.delta_time)
 
     def accel(self):
         # 正転
         try:
-            self.right_motor.update(1, 0)
-            self.left_motor.update(1, 0)
+            self.Speedup(1, 0, 1, 0)
         except Exception as e:
-            self._logger.exception("An error occured!")
+            self._logger.exception("An error occured in motor accel")
 
     def stop(self):
         # 惰性ブレーキ
         try:
-            self.right_motor.update(0, 0)
-            self.left_motor.update(0, 0)
+            self.Speedup(0, 0, 0, 0)
         except Exception as e:
-            self._logger.exception("An error occured!")
+            self._logger.exception("An error occured in motor stop")
 
     def brake(self):
         # 短絡ブレーキ(モーターには負荷)
@@ -143,40 +193,37 @@ class Motor(object):
             self.left_motor.current_duty = 0
             self.left_motor.current_direction = 0
         except Exception as e:
-            self._logger.exception("An error occured!")
+            self._logger.exception("An error occured in short brake")
 
     def leftturn(self):
-        """左回転(右モーターを前に動かす)"""
+        # 左回転(右を向く
         try:
-            self.right_motor.update(1, 0)
-            self.left_motor.update(0, 1)
+            self.Speedup(1, 0, 0, 1)
         except Exception as e:
-            self._logger.exception("An error occured!")
+            self._logger.exception("An error occured in motor leftturn")
 
     def rightturn(self):
-        """右回転(左モーターを前に動かす)"""
+        # 右回転(左を向く)
         try:
-            self.right_motor.update(0, 1)
-            self.left_motor.update(1, 0)
+            self.Speedup(0, 1, 1, 0)
         except Exception as e:
-            self._logger.exception("An error occured!")
+            self._logger.exception("An error occured in motor rightturn")
 
     def back(self):
         # 後ろ
         try:
-            self.right_motor.update(0, 1)
-            self.left_motor.update(0, 1)
+            self.Speedup(0, 1, 0, 1)
         except Exception as e:
-            self._logger.exception("An error occured!")
+            self._logger.exception("An error occured in motor back")
 
     def cleanup(self):
         try:
             self.pi.stop()
         except Exception as e:
-            self._logger.exception("An error occured!")
+            self._logger.exception("An error occured in motor cleanup")
 
 def main():
-    motor = Motor(right_pin1=20, right_pin2=21, left_pin1=5, left_pin2=7)
+    motor = Motor(right_pin1=21, right_pin2=20, left_pin1=7, left_pin2=5)
     print("motor initialized\nstart?")
     input()
 
