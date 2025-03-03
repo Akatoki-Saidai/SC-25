@@ -110,11 +110,13 @@ def fall_phase(devices, data):
                 # 少し待ってもまだ静止して，かつ値が変化していたら
                 if sum(abs(accel_xyz) for accel_xyz in data["accel"]) < 0.5 and sum(abs(gyro_xyz) for gyro_xyz in data["gyro"]) < 0.05 and old_accel != data["accel"] and old_gyro != data["gyro"]:
                     # NiCr線を焼き切る
-                    logger.info("nicr turned on")  # ここで音を鳴らしてもいいかも
+                    logger.info("nicr turned on")  # ここで音を鳴らしてもいいかも←採用
+                    devices["speaker"].audio_play("Hello_Dr.GlennPierce.wav")
                     devices["pi"].write(NICR_PIN, 1)  # NiCr ON
                     time.sleep(10)
                     devices["pi"].write(NICR_PIN, 0)  # NiCr OFF
                     logger.info("nicr turned off")
+                    devices["speaker"].audio_play("His_neme_Stanley.wav")
                     break
         except Exception as e:
             logger.exception(f"An error occured in fall phase: {e}")
