@@ -107,7 +107,7 @@ if __name__ == "__main__":
         # 現在の角度を表示
         print(f"kakudo_now: {sg90.get_angle()}")
         # 角度をセット
-        sg90.set_angle() = angle
+        sg90.set_angle(angle)
         time.sleep(3)
     
     #del sg90  # サーボモータをストップ(delしなくても勝手に止まる)
