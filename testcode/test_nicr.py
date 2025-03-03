@@ -1,7 +1,7 @@
 from gpiozero import LED
 import time
 
-LED(17).off()
+LED(10).off()
 
 try:
     print('start?')
@@ -9,10 +9,10 @@ try:
     print('start')
     start_time = time.time()
 
-    LED(17).on()
+    LED(10).on()
 
     input()
-    LED(17).off()
+    LED(10).off()
 
     stop_time = time.time()
     
@@ -20,5 +20,5 @@ try:
     print("time: ", (stop_time - start_time), "_s")
 
 except Exception as e:
-    LED(17).off()
+    LED(10).off()
     pass
