@@ -50,6 +50,8 @@ def setup(devices):
 
         # スピーカーのセットアップ (ピンは19, 18)
         devices["speaker"] = Speaker(logger=logger)
+        devices["speaker"].audio_play("Windows7_boot.wav")
+
         # LEDのセットアップ
         ## 基板にLEDをつけ忘れた...
     except Exception as e:
@@ -93,6 +95,7 @@ def fall_phase(devices, data):
     try:
         logger.info("Entered fall phase")
         data["phase"] = "fall"
+        devices["speaker"].audio_play("totsugeki_rappa.wav")
     except Exception as e:
         logger.exception(f"An error occured in Entering wait phase: {e}")
                          
@@ -121,6 +124,7 @@ def long_phase(devices, data):
     try:
         logger.info("Entered long phase")
         data["phase"] = "long"
+        devices["speaker"].audio_play("starwars.wav")
     except Exception as e:
         logger.exception(f"An error occured in Entering long phase: {e}")
 
@@ -158,6 +162,7 @@ def short_phase(devices, data, camera_order):
     try:
         logger.info("Entered short phase")
         data["phase"] = "short"
+        devices["speaker"].audio_play("Harry_Potter.wav")
     except Exception as e:
         logger.exception(f"An error occured in entering short phase: {e}")
 
@@ -190,8 +195,10 @@ def goal_phase(devices, data):
     try:
         logger.info("Entered goal phase")
         data["phase"] = "goal"
+        devices["speaker"].audio_play("GLaDOS_escape_02_entry-00.wav")
         while True:
-            time.sleep(1)
+            time.sleep(3)
+            devices["speaker"].audio_play("hotaru_no_hikari.wav")
     except Exception as e:
         logger.exception(f"An error occured in goal phase: {e}")
 

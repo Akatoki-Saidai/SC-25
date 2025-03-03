@@ -48,6 +48,13 @@ class GNSS:
                 self._logger.exception(f"An error occured in be-180 get_forever: {e}")
 
 if __name__ == "__main__":
-    gnss = GNSS()
-    data = {"lat": None, "lon": None}
-    gnss.get_forever(data)
+    try:
+        gnss = GNSS()
+        data = {"lat": None, "lon": None}
+        gnss.get_forever(data)
+    except KeyboardInterrupt as e:
+        print(data)
+
+    except Exception as e:
+        print(f"Error in gnss: {e}")
+    
