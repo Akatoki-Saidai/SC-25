@@ -1,19 +1,24 @@
 from gpiozero import LED
-from time import sleep
+import time
 
 LED(17).off()
 
 try:
-    while True:
-        input()
-        print('start')
+    print('start?')
+    input()
+    print('start')
+    start_time = time.time()
 
-        LED(17).on()
+    LED(17).on()
 
-        sleep(0.5)
-        input()
-        print('stop')
-        LED(17).off()
+    input()
+    LED(17).off()
+
+    stop_time = time.time()
+    
+    print('stop')
+    print("time: ", (stop_time - start_time), "_s")
+
 except Exception as e:
     LED(17).off()
     pass
