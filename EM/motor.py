@@ -100,7 +100,7 @@ class MotorChannel(object):
         try:
             if self.current_direction != self.target_direction:
                 if self.current_duty > 0:
-                    self.current_duty = max(self.current_duty - self.step, 0)
+                    self.current_duty = max(self.current_duty - self.delta_time, 0)
                 else:
                     self.current_direction = self.target_direction
 
