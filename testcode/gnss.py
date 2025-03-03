@@ -24,6 +24,7 @@ def main():
                 if 10 <= ord(x) <= 126:
                     #print("5")
                     stat = my_gps.update(x)
+                    print("gps updated")
                     #print("stat:",stat,"x:",x,"chr:",chr(x))
                     #print(chr(x))
                     if stat:
