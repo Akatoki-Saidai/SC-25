@@ -40,6 +40,7 @@ class SG90:
         self._angle = 0
         self._ini_angle = ini_angle
         self._freq = freq
+        self._range = 255
 
         self._pi = pigpio.pi()
         self._pi.set_mode(self._pin, pigpio.OUTPUT)
@@ -64,17 +65,21 @@ class SG90:
             return
         
         #角度[degree]→パルス幅[μs]に変換
-        pulse_width = ((target_angle)/180.0)*1900.0+500.0
+        pulse_width = ((target_angle)/180.0) * 1900.0+500.0
         self._angle = target_angle
         #duty比[%]を計算(周期：20ms=20000μs)
-        pwm_duty = 100.0*(pulse_width/20000.0)
+        pwm_duty = 100.0 * (pulse_width/20000.0)
         #duty比をhardware_PWMに使える形に変換(1,000,000を100%と考えて数値を指定するらしい.整数で表したいとかなんとか.)
-        duty_cycle = int(pwm_duty* 1000000 / 100)
+        duty_cycle = int(pwm_duty * 1000000 / 100)
         frequency = int(self._freq)
+        
         #PWM出力
-        # self.pi.hardware_PWM(self.pin,frequency,duty_cycle) # hardware-PWM バージョン
-        self._pi.set_PWM_frequency(self._pin, frequency) # software-PWM バージョン
-        self._pi.set_PWM_dutycycle(self._pin, int(pwm_duty*255/100)) # software-PWM バージョン
+        # hardware-PWM バージョン
+        # self.pi.hardware_PWM(self.pin,frequency,duty_cycle)
+        # software-PWM バージョン
+        self._pi.set_PWM_frequency(self._pin, frequency)
+        self.pi.set_PWM_range(self.pin_inverse, self._range)
+        self._pi.set_PWM_dutycycle(self._pin, int((pwm_duty / 100) * self._range))
 
         self._logger.info(f"servo_angle: {self._angle}")
     
