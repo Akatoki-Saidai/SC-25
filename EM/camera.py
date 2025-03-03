@@ -146,7 +146,7 @@ class Camera:
             self._logger.exception("An error occured i analyzing red")
 
 
-    def judge_cone(self, frame, yolo_xylist, yolo_center_x, red_area):
+    def judge_cone(self, frame):
         """画像認識によるカラーコーンの位置と，赤色検出によるカラーコーンの大きさから進むべき方向を決定
         
         0:不明, 1:直進, 2:右へ, 3:左へ, 4:コーンが近い(ゴール)
@@ -159,7 +159,38 @@ class Camera:
                 self._logger.info("Close enough to red")
                 camera_order = 4
 
+            elif red_area > 3500:
+                self._logger.info("judge red object by color")
+
+                try:
+                    # 赤色検出
+                    mask = self.red_detect(frame)
+                    red_area, red_center_x, _red_y = self.analyze_red(mask)
+                    self._logger.debug(f"red area: {red_area}")
+                except Exception as e:
+                    self._logger.exception("An error occured in analize_red")
+
+
+                if frame_center_x -  50 <= red_center_x <= frame_center_x + 50:
+                    self._logger.info("The red object is in the center")#直進
+                    camera_order = 1
+                elif red_center_x > frame_center_x + 50:
+                    self._logger.info("The red object is in the right")#右へ
+                    camera_order = 2
+                elif red_center_x < frame_center_x - 50:
+                    self._logger.info("The red object is in the left")#左へ
+                    camera_order = 3
+
             elif red_area > 5:
+                self._logger.info("judge red object by yolo")
+
+                try:
+                    # YOLO
+                    yolo_xylist, yolo_center_x = self.yolo_detect(frame)
+                    self._logger.debug(f"yolo_xylist: {yolo_xylist}, yolo_center_x: {yolo_center_x}")
+                except Exception as e:
+                    self._logger.exception("An error occured in yolo_detect")
+
                 if frame_center_x -  50 <= yolo_center_x <= frame_center_x + 50:
                     self._logger.info("The red object is in the center")#直進
                     camera_order = 1
@@ -209,26 +240,11 @@ class Camera:
             
             # RGBに変換
             if frame.shape[2] == 4:
-                frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)  # BGRA → BGR（RGBと等価）
-
-            try:
-                # YOLO
-                yolo_xylist, yolo_center_x = self.yolo_detect(frame)
-                self._logger.debug(f"yolo_xylist: {yolo_xylist}, yolo_center_x: {yolo_center_x}")
-            except Exception as e:
-                self._logger.exception("An error occured in yolo_detect")
-
-            try:
-                # 赤色検出
-                mask = self.red_detect(frame)
-                red_area, _red_x, _red_y = self.analyze_red(mask)
-                self._logger.debug("red area: {red_area}")
-            except Exception as e:
-                self._logger.exception("An error occured in analize_red")
+                frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)  # BGRA → BGR（RGBと等価）            
             
             # 判断
             try:
-                frame, camera_order = self.judge_cone(frame, yolo_xylist, yolo_center_x, red_area)
+                frame, camera_order = self.judge_cone(frame)
             except Exception as e:
                 self._logger.exception("An error occured in judgement")
 
