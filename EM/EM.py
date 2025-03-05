@@ -120,7 +120,7 @@ def fall_phase(devices, data):
                     logger.info("nicr turned on")  # ここで音を鳴らしてもいいかも←採用
                     devices["speaker"].audio_play("Hello_Dr.GlennPierce.wav")
                     devices["pi"].write(NICR_PIN, 1)  # NiCr ON
-                    time.sleep(10)
+                    time.sleep(5)
                     devices["pi"].write(NICR_PIN, 0)  # NiCr OFF
                     logger.info("nicr turned off")
                     devices["speaker"].audio_play("His_neme_Stanley.wav")
