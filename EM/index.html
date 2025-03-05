@@ -266,16 +266,16 @@ GUI中で地理院地図を使用しているため，マップの組織外へ�
 
         function updatePhase() {
             const phase_message = document.getElementById("phaseMessage");
-            if (data_from_server.phase === 0){
+            if (data_from_server.phase === "wait"){
                 phase_message.textContent = "WaitPhase";
             }
-            else if (data_from_server.phase === 1){
+            else if (data_from_server.phase === "fall"){
                 phase_message.textContent = "FallPhase";
             }
-            else if (data_from_server.phase === 2){
+            else if (data_from_server.phase === "long"){
                 phase_message.textContent = "LongPhase";
             }
-            else if (data_from_server.phase === 3){
+            else if (data_from_server.phase === "short"){
                 phase_message.textContent = "ShortPhase";
             }
         }

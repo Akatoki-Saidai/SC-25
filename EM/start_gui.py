@@ -1,9 +1,11 @@
 import http.server
+import json
 from logging import getLogger, StreamHandler
 import os
 import socket
 import socketserver
 import subprocess
+import time
 
 # ローカルIPを取得
 local_ip = ""
@@ -34,7 +36,7 @@ try:
 
     # 送信用のJSONファイルを作成
     with open("./data_to_browser.json", "w") as f:
-        f.write('{"motor_l": 0, "motor_r": 0, "light": false, "buzzer": false, "lat": null, "lon": null, "grav": [null, null, null], "mag": [null, null, null], "phase": 0, "pressure: 0", "altitude: 0", "local_ip": "' + f'{local_ip}:{PORT}' + '"}')
+        f.write('{"motor_l": 0, "motor_r": 0, "light": false, "buzzer": false, "lat": null, "lon": null, "grav": [null, null, null], "mag": [null, null, null], "phase": null, "pressure: 0", "altitude: 0", "local_ip": "' + f'{local_ip}:{PORT}' + '"}')
 except Exception as e:
     print(f'<<エラー>>\nGUI送信ファイルへの書き込みに失敗しました: {e}')
 # 書き込み権限を設定
@@ -64,6 +66,54 @@ def start_server(*, logger=None):
         except Exception as e:
             logger.exception(f'<<エラー>>\nGUI用のサーバーでエラーが発生しました')
 
+
+def write_to_gui(devices, data, logger=None):
+    try:
+        # もしloggerが渡されなかったら，ログの記録先を標準出力に設定
+        if _logger is None:
+            _logger = getLogger(__name__)
+            _logger.addHandler(StreamHandler())
+            _logger.setLevel(10)
+        _logger = logger
+
+        data_to_browser = {}
+        with open('data_to_browser.json', 'r') as f:
+            data_to_browser = json.load(f)
+
+        with open('data_to_browser.json', 'w') as f:
+            right_pin1duty, right_pin2duty, left_pin1duty, left_pin2duty = devices["motor"].getPWMduty()
+            
+            if right_pin1duty > right_pin2duty:
+                motor_r = right_pin1duty
+            elif right_pin1duty < right_pin2duty:
+                motor_r = -1 * right_pin2duty
+            else:
+                motor_r = 0
+
+            if left_pin1duty > left_pin2duty:
+                motor_l = left_pin1duty
+            elif left_pin1duty < left_pin2duty:
+                motor_l = -1 * left_pin2duty
+            else:
+                motor_l = 0
+
+            data_to_browser['motor_r'] = motor_r
+            data_to_browser['motor_l'] = motor_l
+            data_to_browser['phase'] = data["phase"]
+            data_to_browser['lat'] = data["lat"]
+            data_to_browser['lon'] = data["lon"]
+            data_to_browser['mag'] = data["mag"]
+            data_to_browser['grav'] = data["grav"]
+            data_to_browser['pressure'] = data["press"]
+            data_to_browser['altitude'] = data["alt"]
+
+            f.write(json.dumps(data_to_browser))
+            
+            time.sleep(0.1)
+
+    except Exception as e:
+        _logger.exception("An error occured in update gui")
+        
 
 if __name__ == '__main__':
     start_server()

@@ -197,7 +197,7 @@ class Motor(object):
             self._logger.exception("An error occured in short brake")
 
     def leftturn(self):
-        # 左回転(右を向く
+        # 左回転(右を向く)
         try:
             self.Speedup(1, 0, 0, 1)
         except Exception as e:
@@ -222,6 +222,19 @@ class Motor(object):
             self.pi.stop()
         except Exception as e:
             self._logger.exception("An error occured in motor cleanup")
+
+    def getPWMduty(self):
+        try:
+            right_pin1_duty = self.right_motor.pi.get_PWM_dutycycle(self.right_motor.pin_inverse)
+            right_pin2_duty = self.right_motor.pi.get_PWM_dutycycle(self.right_motor.pin_reverse)
+            left_pin1_duty = self.left_motor.pi.get_PWM_dutycycle(self.left_motor.pin_inverse)
+            left_pin2_duty = self.left_motor.pi.get_PWM_dutycycle(self.left_motor.pin_reverse)
+
+            return right_pin1_duty, right_pin2_duty, left_pin1_duty, left_pin2_duty
+        
+        except Exception as e:
+            self._logger.exception("Anerror occured in motor getPWM")
+
 
 def main():
     motor = Motor(right_pin1=21, right_pin2=20, left_pin1=7, left_pin2=5)

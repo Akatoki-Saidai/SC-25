@@ -1,4 +1,6 @@
 import copy
+import json
+import os
 from threading import Thread
 from multiprocessing import Process, Value
 import time
@@ -14,6 +16,7 @@ import sc_logging
 from motor import Motor
 from speaker import Speaker
 import start_gui
+import shutil
 
 logger = sc_logging.get_logger(__name__)
 
@@ -73,6 +76,9 @@ def wait_phase(devices, data):
     try:
         logger.info("Entered wait phase")
         data["phase"] = "wait"
+        shutil.copy("./phase_pic/camera_wait.jpg", "./phase_pic/camera_wait_temp.jpg")
+        os.rename("./phase_pic/camera_wait_temp.jpg", "camera.jpg")
+
     except Exception as e:
         logger.exception(f"An error occured in Entering wait phase:{e}")
     
@@ -95,6 +101,8 @@ def fall_phase(devices, data):
     try:
         logger.info("Entered fall phase")
         data["phase"] = "fall"
+        shutil.copy("./phase_pic/camera_fall.jpg", "./phase_pic/camera_fall_temp.jpg")
+        os.rename("./phase_pic/camera_fall_temp.jpg", "camera.jpg")
         devices["speaker"].audio_play("totsugeki_rappa.wav")
     except Exception as e:
         logger.exception(f"An error occured in Entering wait phase: {e}")
@@ -126,6 +134,8 @@ def long_phase(devices, data):
     try:
         logger.info("Entered long phase")
         data["phase"] = "long"
+        shutil.copy("./phase_pic/camera_long.jpg", "./phase_pic/camera_long_temp.jpg")
+        os.rename("./phase_pic/camera_long_temp.jpg", "camera.jpg")
         devices["speaker"].audio_play("starwars.wav")
     except Exception as e:
         logger.exception(f"An error occured in Entering long phase: {e}")
@@ -163,7 +173,9 @@ def long_phase(devices, data):
 def short_phase(devices, data, camera_order):
     try:
         logger.info("Entered short phase")
-        data["phase"] = "short"
+        data["phase"] = "short"        
+        shutil.copy("./phase_pic/camera_short.jpg", "./phase_pic/camera_short_temp.jpg")
+        os.rename("./phase_pic/camera_short_temp.jpg", "camera.jpg")
         devices["speaker"].audio_play("Harry_Potter.wav")
     except Exception as e:
         logger.exception(f"An error occured in entering short phase: {e}")
@@ -234,6 +246,14 @@ if __name__ == "__main__":
     # 並行処理でGNSSによる測定をし続け，dataに代入し続ける
     gnss_thread = Thread(target=devices["gnss"].get_forever, args=(data,))
     gnss_thread.start()  # GNSSによる測定をスタート
+
+    # GUI用のサーバーを起動
+    server_thread = Thread(target=start_gui.start_server, kwargs={'logger': logger})
+    server_thread.start()
+
+    # 並列処理でGUIの表示データを更新
+    gui_thread = Thread(target=start_gui.write_to_gui, args=(devices, data,), kwargs={'logger': logger})
+    gui_thread.start()  # GUIの更新をスタート
 
     # 待機フェーズを実行
     wait_phase(devices, data)
