@@ -158,9 +158,9 @@ def long_phase(devices, data):
             if data["goal_angle"] < 30 or 330 <= data["goal_angle"]:
                 devices["motor"].accel()  # 前進
             elif 30 <= data["goal_angle"] < 180:
-                devices["motor"].rightturn()  # 右へ
+                devices["motor"].rightcurve()  # 右へ
             elif 180 <= data["goal_angle"] < 330:
-                devices["motor"].leftturn()  # 左へ
+                devices["motor"].leftcurve()  # 左へ
             
             # ゴールに近づいたら近距離フェーズへ
             if data["goal_distance"] < 5:
@@ -192,10 +192,10 @@ def short_phase(devices, data, camera_order):
                 devices["motor"].accel()
             elif camera_order.value == 2:
                 # コーンが右にあったとき
-                devices["motor"].rightturn()
+                devices["motor"].rightcurve()
             elif camera_order.value == 3:
                 # コーンが左にあったとき
-                devices["motor"].leftturn()
+                devices["motor"].leftcurve()
             elif camera_order.value == 4:
                 # コーンが十分に大きく見えるとき，ゴールフェーズへ
                 break
