@@ -9,14 +9,14 @@ import subprocess
 local_ip = ""
 
 # ラズパイ以外
-local_ip = socket.gethostbyname_ex(socket.gethostname())[2][-1]
+# local_ip = socket.gethostbyname_ex(socket.gethostname())[2][-1]
 
 #ラズパイ
-# str_out_lines = subprocess.Popen("ip addr", stdout=subprocess.PIPE, shell=True).communicate()[0].decode("ascii", "ignore").splitlines()
-# for line in str_out_lines:
-#     if line.startswith("    inet "):
-#         local_ip = line.split()[1]
-#         local_ip = (local_ip[0:-3] if local_ip[-3] == '/' else local_ip[0:-2])
+str_out_lines = subprocess.Popen("ip addr", stdout=subprocess.PIPE, shell=True).communicate()[0].decode("ascii", "ignore").splitlines()
+for line in str_out_lines:
+    if line.startswith("    inet "):
+        local_ip = line.split()[1]
+        local_ip = (local_ip[0:-3] if local_ip[-3] == '/' else local_ip[0:-2])
 
 HOST, PORT = '', 8000
 
@@ -38,8 +38,8 @@ try:
 except Exception as e:
     print(f'<<エラー>>\nGUI送信ファイルへの書き込みに失敗しました: {e}')
 # 書き込み権限を設定
-# subprocess.run('chmod 664 data_from_browser.json', shell=True)
-# subprocess.run('chmod 664 data_to_browser.json', shell=True)
+subprocess.run('chmod 664 data_from_browser.json', shell=True)
+subprocess.run('chmod 664 data_to_browser.json', shell=True)
 
 class Handler(http.server.SimpleHTTPRequestHandler):
     def do_POST(self):
