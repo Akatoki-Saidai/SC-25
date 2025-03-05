@@ -227,7 +227,7 @@ class Camera:
             self._logger.exception("An error occured in judging colorcone")
     
     
-    def result(self, *, show = False, save=False):
+    def result(self, *, show = False, save=True):
         """画像認識及び赤色検出を行い，進むべき方向を返す
         
         返り値: 0:不明, 1:直進, 2:右へ, 3:左へ, 4:コーンが近い(ゴール)    
@@ -264,7 +264,7 @@ class Camera:
                     cv2.imwrite('camera_temp.jpg', frame)
                     os.rename('camera_temp.jpg', 'camera.jpg')
             except Exception as e:
-                self._logger.exception(f"An error occured in saving camera jpg: {e}")
+                self._logger.exception("An error occured in saving camera jpg")
 
             return camera_order
         
