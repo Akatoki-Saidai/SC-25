@@ -20,7 +20,6 @@ class MotorChannel(object):
         self.MOTOR_RANGE = 100  # 0～255の範囲で設定
         self.FREQUENCY = 4000  # pigpioのデフォルトサンプリングレートは5→8000,4000,2000,1600,1000,800,500,400,320のいずれか
         self.delta_duty = 0.1
-        self.delta_time = 0.05
 
         # PWM設定
         self.pi.set_PWM_frequency(self.pin_inverse, self.FREQUENCY)
@@ -100,7 +99,7 @@ class MotorChannel(object):
         try:
             if self.current_direction != self.target_direction:
                 if self.current_duty > 0:
-                    self.current_duty = max(self.current_duty - self.delta_time, 0)
+                    self.current_duty = max(self.current_duty - self.delta_duty, 0)
                 else:
                     self.current_direction = self.target_direction
 
@@ -109,10 +108,10 @@ class MotorChannel(object):
                 # 現在の duty から目標 duty 1ステップ分変化
                 # 加速
                 if self.current_duty < self.target_duty:
-                    self.current_duty = min(self.current_duty + self.delta_time, self.target_duty)
+                    self.current_duty = min(self.current_duty + self.delta_duty, self.target_duty)
                 # 減速
                 elif self.current_duty > self.target_duty:
-                    self.current_duty = max(self.current_duty - self.delta_time, self.target_duty)
+                    self.current_duty = max(self.current_duty - self.delta_duty, self.target_duty)
 
             self._apply_duty()
         
