@@ -9,14 +9,14 @@ import subprocess
 local_ip = ""
 
 # ラズパイ以外
-# local_ip = socket.gethostbyname_ex(socket.gethostname())[2][-1]
+local_ip = socket.gethostbyname_ex(socket.gethostname())[2][-1]
 
 #ラズパイ
-str_out_lines = subprocess.Popen("ip addr", stdout=subprocess.PIPE, shell=True).communicate()[0].decode("ascii", "ignore").splitlines()
-for line in str_out_lines:
-    if line.startswith("    inet "):
-        local_ip = line.split()[1]
-        local_ip = (local_ip[0:-3] if local_ip[-3] == '/' else local_ip[0:-2])
+# str_out_lines = subprocess.Popen("ip addr", stdout=subprocess.PIPE, shell=True).communicate()[0].decode("ascii", "ignore").splitlines()
+# for line in str_out_lines:
+#     if line.startswith("    inet "):
+#         local_ip = line.split()[1]
+#         local_ip = (local_ip[0:-3] if local_ip[-3] == '/' else local_ip[0:-2])
 
 HOST, PORT = '', 8000
 
@@ -30,16 +30,16 @@ except Exception as e:
 try:
     # 受信用のJSONファイルを作成
     with open("./data_from_browser.json", "w") as f:
-        f.write('{"motor_l": 0, "motor_r": 0, "light": false, "buzzer": false }')
+        f.write('{"nanimonai": true}')
 
     # 送信用のJSONファイルを作成
     with open("./data_to_browser.json", "w") as f:
-        f.write('{"motor_l": 0, "motor_r": 0, "light": false, "buzzer": false, "lat": null, "lon": null, "grav": [null, null, null], "mag": [null, null, null], "local_ip": "' + f'{local_ip}:{PORT}' + '"}')
+        f.write('{"motor_l": 0, "motor_r": 0, "light": false, "buzzer": false, "lat": null, "lon": null, "grav": [null, null, null], "mag": [null, null, null], "phase": 0, "pressure: 0", "altitude: 0", "local_ip": "' + f'{local_ip}:{PORT}' + '"}')
 except Exception as e:
-    print(f'<<エラー>>\nGUI送受信ファイルへの書き込みに失敗しました: {e}')
+    print(f'<<エラー>>\nGUI送信ファイルへの書き込みに失敗しました: {e}')
 # 書き込み権限を設定
-subprocess.run('chmod 664 data_from_browser.json', shell=True)
-subprocess.run('chmod 664 data_to_browser.json', shell=True)
+# subprocess.run('chmod 664 data_from_browser.json', shell=True)
+# subprocess.run('chmod 664 data_to_browser.json', shell=True)
 
 class Handler(http.server.SimpleHTTPRequestHandler):
     def do_POST(self):
@@ -63,6 +63,11 @@ def start_server(*, logger=None):
                 httpd.serve_forever()
         except Exception as e:
             logger.exception(f'<<エラー>>\nGUI用のサーバーでエラーが発生しました')
+
+
+if __name__ == '__main__':
+    start_server()
+
 
 # 参考にしたサイト
 ## https://stackoverflow.com/questions/66514500/how-do-i-configure-a-python-server-for-post

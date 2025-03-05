@@ -11,7 +11,6 @@
 
 camera.jpgを別のプログラムから変更することで，ブラウザに表示される画像を更新できます
 data_to_browserを別のプログラムから変更することで，ブラウザ上にモーターの出力などを表示できます
-ブラウザでの操作は，自動的にdata_from_browserに記録されます．
 
 
 GUI中で地理院地図を使用しているため，マップの組織外への頒布は行わないでください．
@@ -23,7 +22,7 @@ GUI中で地理院地図を使用しているため，マップの組織外へ�
         <meta charset="utf-8" />
         <title>CanSat Remote Controler</title>
         <meta name="author" content="Akatoki Saidai" />
-        <meta name="description" content="ラズベリーPiなどのマイコンを使ったロボットを遠隔操作するためのGUIです"/>
+        <meta name="description" content="ラズベリーPiなどのマイコンを使ったCanSatを遠隔で監視するためのGUIです"/>
     </head>
     <body
         style="text-align: center; background-color: black; overflow: hidden; touch-action: none; user-select: none;">
@@ -74,9 +73,9 @@ GUI中で地理院地図を使用しているため，マップの組織外へ�
             </style>
         </div>
 
-        <!-- ライトとブザーを操作するためのボタン -->
+        <!-- ライトとブザーを操作するためのボタン(削除済) -->
         <div id="inputButtonField" 
-            style="position: fixed; bottom: 5px; right: 5px; margin: 10px 30px; width: 150px; height: 150px;">
+            style="display: none; position: fixed; bottom: 5px; right: 5px; margin: 10px 30px; width: 150px; height: 150px;">
             <button class="inputButton" id="lightButton" type="button" 
                 style="position: absolute; top: 0; right: 0">
                 <svg role="img" xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24" aria-labelledby="lightBulbIconTitle" aria-hidden="true" focusable="false">
@@ -99,8 +98,8 @@ GUI中で地理院地図を使用しているため，マップの組織外へ�
         </div>
 
         <!-- 機体を移動させるためのスティックのようなもの -->
-        <div id="movingStick"
-            style="position: fixed; bottom: 20px; left: 40px;">
+        <div id=""
+            style="display: none; position: fixed; bottom: 20px; left: 40px;">
             <div id="movingStickFrame"
                 style="width: 160px; height: 160px; visibility: hidden; border-radius: 50%; border: 3px solid white;"></div>
             <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" id="movingStickKnob"
@@ -108,6 +107,26 @@ GUI中で地理院地図を使用しているため，マップの組織外へ�
                 <title/><g data-name="25-Arrow-direction-pointer" id="_25-Arrow-direction-pointer"><polygon points="31 16 25 11 25 14 18 14 18 7 21 7 16 1 11 7 14 7 14 14 7 14 7 11 1 16 7 21 7 18 14 18 14 25 11 25 16 31 21 25 18 25 18 18 25 18 25 21 31 16" style="fill:none;stroke:#ffffff;stroke-linecap:round;stroke-linejoin:round;stroke-width:2px"/></g>
             </svg>
         </div>
+
+        <!-- フェーズ移行状況表示(新設) -->
+        <div id="cansatPhase"
+            style="position: fixed; bottom: 100px; right: 100px;">
+            <p id="phaseMessage" style="color: white;">
+                NoPhase
+            </p>
+        </div>
+
+        <!-- 気圧高度表示(新設) -->
+        <div id="bmpSensorfield"
+            style="position: fixed; top: 160px; right: 90px;">
+            <p id="bmpAltitude" style="color: white; position: absolute; top: 15px; right: 0px;">
+                NoAltitude
+            </p>
+            <p id="bmpPressure" style="color: white; position: absolute; top: 0px; right: 0px;">
+                NoPressure
+            </p>
+        </div>
+
     </body>
 
     <script>
@@ -245,6 +264,31 @@ GUI中で地理院地図を使用しているため，マップの組織外へ�
             }
         }
 
+        function updatePhase() {
+            const phase_message = document.getElementById("phaseMessage");
+            if (data_from_server.phase === 0){
+                phase_message.textContent = "WaitPhase";
+            }
+            else if (data_from_server.phase === 1){
+                phase_message.textContent = "FallPhase";
+            }
+            else if (data_from_server.phase === 2){
+                phase_message.textContent = "LongPhase";
+            }
+            else if (data_from_server.phase === 3){
+                phase_message.textContent = "ShortPhase";
+            }
+        }
+
+        function updatebmp() {
+            const pressure_message = document.getElementById("bmpPressure");
+            const altitude_message = document.getElementById("bmpAltitude");
+
+            pressure_message.textContent = data_from_server.pressure
+            altitude_message.textContent = data_from_server.altitude
+            
+        }
+
         // 受信したデータをもとに表示を更新
         function updataData(data) {
             data_from_server = data;
@@ -255,6 +299,8 @@ GUI中で地理院地図を使用しているため，マップの組織外へ�
             setBuzzer(data_from_server.buzzer);
             updateMap(data_from_server.lat, data_from_server.lon);
             updateTiltIcon();
+            updatePhase(data_from_server.phase);
+            updatebmp(data_from_server.pressure, data_from_server.altitude);
         }
 
         // モーター出力などのデータをマイコンから定期的に読み込む
