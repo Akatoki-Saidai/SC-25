@@ -75,8 +75,8 @@ def wait_phase(devices, data):
     try:
         logger.info("Entered wait phase")
         data["phase"] = "wait"
-        shutil.copy("./phase_pic/camera_wait.jpg", "./phase_pic/camera_wait_temp.jpg")
-        os.rename("./phase_pic/camera_wait_temp.jpg", "camera.jpg")
+        shutil.copy("./phase_pic/camera_wait.jpg", "./camera_wait_temp.jpg")
+        os.rename("./camera_wait_temp.jpg", "camera.jpg")
 
     except Exception as e:
         logger.exception(f"An error occured in Entering wait phase:{e}")
@@ -100,8 +100,8 @@ def fall_phase(devices, data):
     try:
         logger.info("Entered fall phase")
         data["phase"] = "fall"
-        shutil.copy("./phase_pic/camera_fall.jpg", "./phase_pic/camera_fall_temp.jpg")
-        os.rename("./phase_pic/camera_fall_temp.jpg", "camera.jpg")
+        shutil.copy("./phase_pic/camera_fall.jpg", "./camera_fall_temp.jpg")
+        os.rename("./camera_fall_temp.jpg", "camera.jpg")
         devices["speaker"].audio_play("totsugeki_rappa.wav")
     except Exception as e:
         logger.exception(f"An error occured in Entering wait phase: {e}")
@@ -133,8 +133,8 @@ def long_phase(devices, data):
     try:
         logger.info("Entered long phase")
         data["phase"] = "long"
-        shutil.copy("./phase_pic/camera_long.jpg", "./phase_pic/camera_long_temp.jpg")
-        os.rename("./phase_pic/camera_long_temp.jpg", "camera.jpg")
+        shutil.copy("./phase_pic/camera_long.jpg", "./camera_long_temp.jpg")
+        os.rename("./camera_long_temp.jpg", "camera.jpg")
         devices["speaker"].audio_play("starwars.wav")
     except Exception as e:
         logger.exception(f"An error occured in Entering long phase: {e}")
@@ -173,8 +173,8 @@ def short_phase(devices, data, camera_order):
     try:
         logger.info("Entered short phase")
         data["phase"] = "short"        
-        shutil.copy("./phase_pic/camera_short.jpg", "./phase_pic/camera_short_temp.jpg")
-        os.rename("./phase_pic/camera_short_temp.jpg", "camera.jpg")
+        shutil.copy("./phase_pic/camera_short.jpg", "./camera_short_temp.jpg")
+        os.rename("./camera_short_temp.jpg", "camera.jpg")
         devices["speaker"].audio_play("Harry_Potter.wav")
     except Exception as e:
         logger.exception(f"An error occured in entering short phase: {e}")
