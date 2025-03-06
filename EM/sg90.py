@@ -94,7 +94,7 @@ if __name__ == "__main__":
     sg90 = SG90(pin=26, min_angle=0, max_angle=180, ini_angle=90, freq=50)
     time.sleep(2)
 
-    for angle in range(0, 180, 10):
+    for angle in range(90, 180, 5):
         # 現在の角度を表示
         print(f"kakudo_now: {sg90.get_angle()}")
         # 角度をセット
@@ -107,6 +107,8 @@ if __name__ == "__main__":
         # 角度をセット
         sg90.set_angle(angle)
         time.sleep(0.5)
+    
+    sg90.set_angle(90)
     
     
     #del sg90  # サーボモータをストップ(delしなくても勝手に止まる)
