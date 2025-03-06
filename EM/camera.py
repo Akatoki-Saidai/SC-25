@@ -141,12 +141,12 @@ class Camera:
 
                 # cv2.putText(frame, str(center_x), (center_x, center_y - 20), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 1)
 
-            return area, center_x, center_y
+            return area, center_x, center_y, rect
         except Exception as e:
             self._logger.exception("An error occured i analyzing red")
 
 
-    def judge_cone(self, frame):
+    def judge_cone(self, frame, servo_center):
         """画像認識によるカラーコーンの位置と，赤色検出によるカラーコーンの大きさから進むべき方向を決定
         
         0:不明, 1:直進, 2:右へ, 3:左へ, 4:コーンが近い(ゴール)
@@ -154,6 +154,15 @@ class Camera:
         try:
             frame_center_x = frame.shape[1] // 2
 
+            try:
+                # 赤色検出
+                mask = self.red_detect(frame)
+                red_area, red_center_x, _red_y, red_rect = self.analyze_red(mask)
+                self._logger.debug(f"red area: {red_area}")
+            except Exception as e:
+                self._logger.exception("An error occured in analize_red")
+
+            colorcone_x = 0
             # 中心座標のx座標が画像の中心より大きいか小さいか判定
             if red_area > 7000:
                 self._logger.info("Close enough to red")
@@ -162,24 +171,20 @@ class Camera:
             elif red_area > 3500:
                 self._logger.info("judge red object by color")
 
-                try:
-                    # 赤色検出
-                    mask = self.red_detect(frame)
-                    red_area, red_center_x, _red_y = self.analyze_red(mask)
-                    self._logger.debug(f"red area: {red_area}")
-                except Exception as e:
-                    self._logger.exception("An error occured in analize_red")
-
-
-                if frame_center_x -  50 <= red_center_x <= frame_center_x + 50:
+                colorcone_x = red_center_x - (frame_center_x + servo_center)
+                if -50 <= colorcone_x <= 50:
                     self._logger.info("The red object is in the center")#直進
                     camera_order = 1
-                elif red_center_x > frame_center_x + 50:
+                elif colorcone_x > 50:
                     self._logger.info("The red object is in the right")#右へ
                     camera_order = 2
-                elif red_center_x < frame_center_x - 50:
+                elif colorcone_x < -50:
                     self._logger.info("The red object is in the left")#左へ
                     camera_order = 3
+                else:
+                    self._logger.info("The red object is too minimum")
+                    camera_order = 0
+                
 
             elif red_area > 5:
                 self._logger.info("judge red object by yolo")
@@ -191,22 +196,23 @@ class Camera:
                 except Exception as e:
                     self._logger.exception("An error occured in yolo_detect")
 
-                if frame_center_x -  50 <= yolo_center_x <= frame_center_x + 50:
-                    self._logger.info("The red object is in the center")#直進
-                    camera_order = 1
-                elif yolo_center_x > frame_center_x + 50:
-                    self._logger.info("The red object is in the right")#右へ
-                    camera_order = 2
-                elif yolo_center_x < frame_center_x - 50:
-                    self._logger.info("The red object is in the left")#左へ
-                    camera_order = 3
+                colorcone_x = yolo_center_x - (frame_center_x + servo_center)
 
+                if -50 <= colorcone_x <= 50:
+                    self._logger.info("The yolo object is in the center")#直進
+                    camera_order = 1
+                elif colorcone_x > 50:
+                    self._logger.info("The yolo object is in the right")#右へ
+                    camera_order = 2
+                elif colorcone_x < -50:
+                    self._logger.info("The yolo object is in the left")#左へ
+                    camera_order = 3
                 else:
-                    self._logger.info("The red object is too minimum")
+                    self._logger.info("The yolo object is too minimum")
                     camera_order = 0
             
             else:
-                self._logger.info("The red object is None")
+                self._logger.info("Colorcone is None")
                 camera_order = 0
             
             if yolo_xylist != 0:
@@ -220,14 +226,19 @@ class Camera:
                 # red_result = cv2.drawContours(mask, [biggest_contour], -1, (0, 255, 0), 2)
             
             else:
-                camera_order = 0
+                # 最大の領域の長方形を表示する
+                cv2.rectangle(frame, (red_rect[0], red_rect[1]), (red_rect[0] + red_rect[2], red_rect[1] + red_rect[3]), (0, 0, 255), 2)
+
+                # 最大の領域の面積を表示する
+                cv2.putText(frame, str(red_area), (red_rect[0], red_rect[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 0), 1)
 
             return frame, camera_order
+        
         except Exception as e:
             self._logger.exception("An error occured in judging colorcone")
     
     
-    def result(self, *, show = False, save=True):
+    def result(self, servo_center, *, show = False, save=True):
         """画像認識及び赤色検出を行い，進むべき方向を返す
         
         返り値: 0:不明, 1:直進, 2:右へ, 3:左へ, 4:コーンが近い(ゴール)    
@@ -244,7 +255,8 @@ class Camera:
             
             # 判断
             try:
-                frame, camera_order = self.judge_cone(frame)
+                frame, camera_order = self.judge_cone(frame, servo_center)
+
             except Exception as e:
                 self._logger.exception("An error occured in judgement")
 
@@ -272,11 +284,24 @@ class Camera:
             self._logger.exception("An error occured in result")
     
     # ずっとカメラによる画像認識をし続けます．
-    # このメッソッドはmultipleprocessingで呼び出されることを想定しています
-    def get_forever(self, camera_order, show=False):
+    # このメソッドはmultipleprocessingで呼び出されることを想定しています
+    def get_forever(self, devices, camera_order, show=False):
         while True:
             try:
-                camera_order.value = self.result(show=show)
+                # 画像認識
+                # camera_order.value = self.result(show=show)
+
+                # sg90動作(要調整)
+                # 右を見る
+                devices["servo"].set_angle(-15)
+                servo_center = -100
+                camera_order.value, = self.result(servo_center, show=show)
+
+                # 左を見る
+                devices["servo"].set_angle(15)
+                servo_center = 100
+                camera_order.value = self.result(servo_center, show=show)
+
             except Exception as e:
                 self._logger.exception("An error occured in camera get_forever")
     
@@ -287,6 +312,6 @@ if __name__ == '__main__':
 
     while True:
         camera_order = cam.result(show=True)  # 画像認識をしてコーンを検出 (show=Trueなら撮影した画像のプレビューを表示)
-        print(f"{camera_order=}")
+        print(f"camera_order; {camera_order=}")
         time.sleep(1)
         

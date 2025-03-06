@@ -65,8 +65,13 @@ def camera_setup_and_start(camera_order, show=False):
         camera = Camera(logger, show=show, save=True)  # セットアップ
         camera.start()  # 起動
         # カメラで画像認識し続ける
-        camera_thread = Thread(target=camera.get_forever, args=(camera_order, show,))
+        camera_thread = Thread(target=camera.get_forever, args=(devices, camera_order, show,))
         camera_thread.start()
+
+        # GUIに定期的に書き込む
+        gui_thread = Thread(target=start_gui.write_to_gui, args=(devices, data,), kwargs={'logger': logger})
+        gui_thread.start()
+        
     except Exception as e:
         logger.exception(f"An error occured in setup and start camera: {e}")
 
@@ -185,7 +190,7 @@ def short_phase(devices, data, camera_order):
             if camera_order.value == 0:
                 # コーンが見つからなかったとき
                 devices["motor"].rightturn()
-                time.sleep(0.5)
+                time.sleep(0.3)
                 devices["motor"].stop()
             elif camera_order.value == 1:
                 # コーンが正面にあったとき
@@ -264,8 +269,9 @@ if __name__ == "__main__":
     long_phase(devices, data)
 
     # 並列処理でカメラをセットアップして撮影開始（並行処理ではない）
-    # 画像認識の結果を camera_order.value に代入し続ける
-    camera_order = Value('i', 0)  # 別のプロセスとデータをやり取りするのでcamera_orderだけ特殊な扱い
+    # 画像認識の結果を camera_order.value ，colorcone_xに代入し続ける
+    # 別のプロセスとデータをやり取りするcamera_oederとcolorcone_xは特殊な扱い
+    camera_order = Value('i', 0)
     camera_process = Process(target=camera_setup_and_start, args=(camera_order, True))
     camera_process.start()  # 画像認識スタート
 
