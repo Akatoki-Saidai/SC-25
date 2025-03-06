@@ -78,7 +78,7 @@ class SG90:
         # self.pi.hardware_PWM(self.pin,frequency,duty_cycle)
         # software-PWM バージョン
         self._pi.set_PWM_frequency(self._pin, frequency)
-        self.pi.set_PWM_range(self.pin_inverse, self._range)
+        self._pi.set_PWM_range(self.pin_inverse, self._range)
         self._pi.set_PWM_dutycycle(self._pin, int((pwm_duty / 100) * self._range))
 
         self._logger.info(f"servo_angle: {self._angle}")
