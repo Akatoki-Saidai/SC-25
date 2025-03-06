@@ -91,28 +91,22 @@ class SG90:
 if __name__ == "__main__":
     # 動作サンプル
 
-    """
-    動作サンプルではサーボモータを2台接続
-    サーボそれぞれの信号ピンを17番、18番に接続
-    """
-    
-    """
-    ServoMotorクラスのインスタンス化
-    pin: サーボモータ信号端子の接続先ピン番号(設定しない場合 17番)
-    max_angle: 最大角度(設定しない場合 180度)
-    min_angle: 最小角度(設定しない場合 0度)
-    ini_angle: 初期設定角度(設定しない場合 90度)
-    """
-    
-    #これサンプルコードだから0~180のangle採用してる。書き換える必要あり。
-    sg90 = SG90(pin=26, min_angle=0, max_angle=180, ini_angle=0, freq=50)
-    time.sleep(3)
+    sg90 = SG90(pin=26, min_angle=0, max_angle=180, ini_angle=90, freq=50)
+    time.sleep(2)
 
     for angle in range(0, 180, 10):
         # 現在の角度を表示
         print(f"kakudo_now: {sg90.get_angle()}")
         # 角度をセット
         sg90.set_angle(angle)
-        time.sleep(3)
+        time.sleep(0.5)
+    
+    for angle in range(180, 0, 10):
+        # 現在の角度を表示
+        print(f"kakudo_now: {sg90.get_angle()}")
+        # 角度をセット
+        sg90.set_angle(angle)
+        time.sleep(0.5)
+    
     
     #del sg90  # サーボモータをストップ(delしなくても勝手に止まる)
