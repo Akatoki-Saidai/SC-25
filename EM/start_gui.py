@@ -70,10 +70,10 @@ def start_server(*, logger=None):
 def write_to_gui(devices, data, logger=None):
     try:
         # もしloggerが渡されなかったら，ログの記録先を標準出力に設定
-        if _logger is None:
-            _logger = getLogger(__name__)
-            _logger.addHandler(StreamHandler())
-            _logger.setLevel(10)
+        if logger is None:
+            logger = getLogger(__name__)
+            logger.addHandler(StreamHandler())
+            logger.setLevel(10)
         _logger = logger
 
         data_to_browser = {}
