@@ -13,6 +13,7 @@ def main():
     tm_last = 0
     while True:
         #print("3")
+        time.sleep(0.1)
         print(uart.in_waiting)
         sentence_all = uart.read(uart.in_waiting).decode('utf-8')
         print("GPS data received")
