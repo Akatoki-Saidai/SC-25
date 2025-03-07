@@ -119,11 +119,11 @@ def fall_phase(devices, data):
         try:
             time.sleep(0.1)
             # 地面近くで静止してたら
-            if data["alt"] < 5 and sum(abs(accel_xyz) for accel_xyz in data["accel"]) < 0.5 and sum(abs(gyro_xyz) for gyro_xyz in data["gyro"]) < 0.05:
-                old_accel, old_gyro = copy.copy(data["accel"]), copy.copy(data["gyro"])
+            if data["alt"] < 5 and sum(abs(accel_xyz) for accel_xyz in data["line_accel"]) < 0.5 and sum(abs(gyro_xyz) for gyro_xyz in data["gyro"]) < 0.05:
+                old_accel, old_gyro = copy.copy(data["line_accel"]), copy.copy(data["gyro"])
                 time.sleep(3)
                 # 少し待ってもまだ静止して，かつ値が変化していたら
-                if sum(abs(accel_xyz) for accel_xyz in data["accel"]) < 0.5 and sum(abs(gyro_xyz) for gyro_xyz in data["gyro"]) < 0.05 and old_accel != data["accel"] and old_gyro != data["gyro"]:
+                if sum(abs(accel_xyz) for accel_xyz in data["line_accel"]) < 0.5 and sum(abs(gyro_xyz) for gyro_xyz in data["gyro"]) < 0.05 and old_accel != data["line_accel"] and old_gyro != data["gyro"]:
                     # NiCr線を焼き切る
                     logger.info("nicr turned on")  # ここで音を鳴らしてもいいかも←採用
                     devices["speaker"].audio_play("Hello_Dr.GlennPierce.wav")
