@@ -1,11 +1,8 @@
 # camera lib
-
+import time
 import cv2
 import numpy as np
-
-
-# 測定値の出力用
-import csv_print as csv
+from picamera2 import Picamera2
 
 
 class Camera:
@@ -55,9 +52,10 @@ class Camera:
 
             # 最大の領域の中心座標を表示する
             cv2.circle(frame, (center_x, center_y), 5, (0, 255, 0), -1)
+            cv2.putText(frame, str(center_x), (rect[0], rect[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 0, 0), 1)
 
             # 最大の領域の面積を表示する
-            cv2.putText(frame, str(area), (rect[0], rect[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 0), 1)
+            # cv2.putText(frame, str(area), (rect[0], rect[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 0), 1)
 
             # cv2.putText(frame, str(center_x), (center_x, center_y - 20), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 1)
 
@@ -100,3 +98,26 @@ class Camera:
 
         return frame, camera_order
 
+if __name__ == '__main__':
+    picam2 = Picamera2()
+    config = picam2.create_preview_configuration({"format": 'XRGB8888', "size": (320, 240)})
+    picam2.configure(config)
+    cam = Camera()
+
+
+    while True:
+        frame = picam2.capture_array()
+        cam.red_detect(frame)
+        mask = cam.red_detect(frame)
+        # 赤色検知の結果を取得
+        # analize_redの戻り値は0が見つからない，1が中心，2が右，3が左，4がゴール
+        frame, camera_order = cam.analyze_red(frame, mask)
+        # 結果表示
+        cv2.imshow('kekka', frame)
+        time.sleep(1)
+        #print(len(contours))
+
+        if cv2.waitKey(25) & 0xFF == ord('q'):
+            cv2.destroyAllWindows()
+            print('q interrupted direction by camera')
+            continue
