@@ -16,7 +16,7 @@ class SG90:
     ini_angle: 初期設定角度
     pi: gpio制御
     """
-    def __init__(self, pin, min_angle=0, max_angle=180, ini_angle=0, freq=50):
+    def __init__(self, pin, min_angle=-90, max_angle=90, ini_angle=0, freq=50):
         """サーボモータをセットアップ"""
         self._pin = pin
         self._max_angle = max_angle
@@ -47,7 +47,10 @@ class SG90:
         if target_angle < self._min_angle or target_angle > self._max_angle:
             print(f"角度は{self._min_angle}から{self._max_angle}度の間で指定してください。")
             return
-        
+
+        # target_angleを_min_angle次第で修正
+        target_angle = target_angle - self._min_angle
+
         #角度[degree]→パルス幅[μs]に変換
         pulse_width = ((target_angle)/180.0) * 1900.0+500.0
         self._angle = target_angle
