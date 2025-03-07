@@ -319,7 +319,7 @@ if __name__ == '__main__':
     cam.start()  # カメラにを起動 (重くなるので使用する直前までstartしないこと)
 
     while True:
-        camera_order = cam.result(show=True)  # 画像認識をしてコーンを検出 (show=Trueなら撮影した画像のプレビューを表示)
+        camera_order = cam.result(0, show=True)  # 画像認識をしてコーンを検出 (show=Trueなら撮影した画像のプレビューを表示)
         print(f"camera_order; {camera_order=}")
         time.sleep(1)
         
