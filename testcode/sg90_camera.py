@@ -3,6 +3,7 @@ import time
 import cv2
 import numpy as np
 from picamera2 import Picamera2
+import pigpio
 
 
 class SG90:
@@ -15,16 +16,8 @@ class SG90:
     ini_angle: 初期設定角度
     pi: gpio制御
     """
-    def __init__(self, pin, min_angle=0, max_angle=180, ini_angle=0, freq=50, logger=None):
+    def __init__(self, pin, min_angle=0, max_angle=180, ini_angle=0, freq=50):
         """サーボモータをセットアップ"""
-
-        # もしloggerが渡されなかったら，ログの記録先を標準出力にする
-        if logger is None:
-            logger = getLogger(__name__)
-            logger.addHandler(StreamHandler())
-            logger.setLevel(10)
-        self._logger = logger
-
         self._pin = pin
         self._max_angle = max_angle
         self._min_angle = min_angle
@@ -52,7 +45,7 @@ class SG90:
     def set_angle(self, target_angle):
         """サーボモータの角度を特定の角度に動かす"""
         if target_angle < self._min_angle or target_angle > self._max_angle:
-            self._logger.warning(f"角度は{self._min_angle}から{self._max_angle}度の間で指定してください。")
+            print(f"角度は{self._min_angle}から{self._max_angle}度の間で指定してください。")
             return
         
         #角度[degree]→パルス幅[μs]に変換
@@ -72,7 +65,7 @@ class SG90:
         self._pi.set_PWM_range(self._pin, self._range)
         self._pi.set_PWM_dutycycle(self._pin, int((pwm_duty / 100) * self._range))
 
-        self._logger.info(f"servo_angle: {self._angle}")
+        print(f"servo_angle: {self._angle}")
     
     def set_ini_angle(self):
         self.angle = self._ini_angle
