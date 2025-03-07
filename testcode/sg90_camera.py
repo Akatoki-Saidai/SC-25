@@ -95,7 +95,7 @@ if __name__ == '__main__':
     config = picam2.create_preview_configuration({"format": 'XRGB8888', "size": (320, 240)})
     picam2.configure(config)
     cam = Camera()
-
+    picam2.start()
 
     while True:
         frame = picam2.capture_array()
