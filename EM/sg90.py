@@ -109,6 +109,25 @@ if __name__ == "__main__":
         time.sleep(0.5)
     
     sg90.set_angle(90)
+    time.sleep(0.5)
+    sg90.set_angle(95)
+    time.sleep(0.5)
+    sg90.set_angle(100)
+    time.sleep(0.5)
+    sg90.set_angle(105)
+    time.sleep(0.5)
+
     
+    sg90.set_angle(90)
+    time.sleep(0.5)
+    sg90.set_angle(85)
+    time.sleep(0.5)
+    sg90.set_angle(80)
+    time.sleep(0.5)
+    sg90.set_angle(75)
+    time.sleep(0.5)
+
+    
+    sg90.set_angle(90)
     
     #del sg90  # サーボモータをストップ(delしなくても勝手に止まる)
