@@ -15,6 +15,7 @@ class GNSS:
                 if 10 <= ord(read_char) <= 126:
                     print(read_char, end="")
                     self._pygps.update(read_char)
+            time.sleep(0.03)
 
     def __init__(self, logger=None):
         # もしloggerが渡されなかったら，ログの記録先を標準出力に設定
