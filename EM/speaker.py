@@ -35,7 +35,7 @@ class Speaker:
                 # サウンドカードはaplay -lでbcm2835 Headphonesの番号を選択
                 self.proces_aplay = subprocess.Popen(f"aplay --device=hw:1,0 {audio_path}", shell=True)
 
-                self._logger.log("Play music")
+                self._logger.info("Play music")
 
             else:
                 self._logger.warning("already playing music now. canceled playing.")

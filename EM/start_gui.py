@@ -36,7 +36,7 @@ try:
 
     # 送信用のJSONファイルを作成
     with open("./data_to_browser.json", "w") as f:
-        f.write('{"motor_l": 0, "motor_r": 0, "light": false, "buzzer": false, "lat": null, "lon": null, "grav": [null, null, null], "mag": [null, null, null], "phase": null, "pressure: 0", "altitude: 0", "local_ip": "' + f'{local_ip}:{PORT}' + '"}')
+        f.write('{"motor_l": 0, "motor_r": 0, "light": false, "buzzer": false, "lat": null, "lon": null, "grav": [null, null, null], "mag": [null, null, null], "phase": null, "pressure": 0, "altitude": 0, "local_ip": "' + f'{local_ip}:{PORT}' + '"}')
 except Exception as e:
     print(f'<<エラー>>\nGUI送信ファイルへの書き込みに失敗しました: {e}')
 # 書き込み権限を設定
