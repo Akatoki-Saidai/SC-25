@@ -168,6 +168,7 @@ if __name__ == '__main__':
     picam2.start()
 
     while True:
+        sg90.set_angle(0)
         frame = picam2.capture_array()
         mask = cam.red_detect(frame)
         # 赤色検知の結果を取得
