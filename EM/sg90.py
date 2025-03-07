@@ -64,6 +64,9 @@ class SG90:
             self._logger.warning(f"角度は{self._min_angle}から{self._max_angle}度の間で指定してください。")
             return
         
+        # target_angleを_min_angle次第で修正
+        target_angle = target_angle - self._min_angle
+
         #角度[degree]→パルス幅[μs]に変換
         pulse_width = ((target_angle)/180.0) * 1900.0+500.0
         self._angle = target_angle
