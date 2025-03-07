@@ -93,7 +93,7 @@ def wait_phase(devices, data):
             # 高度が十分高かったら
             if 0 < data["alt"]:
                 old_alt = data["alt"]
-                time.sleep(3)
+                time.sleep(1)
                 # 少し待ってもまだ高度が高く，かつ高度が少しでも変化していたら，待機フェーズを終了
                 if 2 < data["alt"] and old_alt != data["alt"]:
                     break
