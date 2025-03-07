@@ -21,8 +21,8 @@ logger = sc_logging.get_logger(__name__)
 
 NICR_PIN = 10  # ニクロム線のGPIO番号
 
-GOAL_LAT = 35.862831  # ゴールの緯度
-GOAL_LON = 139.608850  # ゴールの経度
+GOAL_LAT = 30.3741583  # ゴールの緯度(2025/03/08/08/27)
+GOAL_LON = 130.960075  # ゴールの経度(2025/03/08/08/27)
 
 # 各デバイスのセットアップ devices引数の中身を変更します
 def setup(devices):
