@@ -286,21 +286,28 @@ class Camera:
     # ずっとカメラによる画像認識をし続けます．
     # このメソッドはmultipleprocessingで呼び出されることを想定しています
     def get_forever(self, devices, camera_order, show=False):
+        # 画像認識
+        camera_order.value = self.result(show=show)
+
         while True:
             try:
-                # 画像認識
-                # camera_order.value = self.result(show=show)
-
-                # sg90動作(要調整)
-                # 右を見る
-                devices["servo"].set_angle(-15)
-                servo_center = -100
-                camera_order.value, = self.result(servo_center, show=show)
-
-                # 左を見る
-                devices["servo"].set_angle(15)
-                servo_center = 100
-                camera_order.value = self.result(servo_center, show=show)
+                # カメラが対象を補足していなければsg90動作(要調整)
+                if camera_order.value == 0:
+                    # 右を見る
+                    devices["servo"].set_angle(-10)
+                    servo_center = -80
+                    camera_order.value = self.result(servo_center, show=show)
+                    
+                if camera_order.value == 0:
+                    # 左を見る
+                    devices["servo"].set_angle(10)
+                    servo_center = 80
+                    camera_order.value = self.result(servo_center, show=show)
+                    
+                else:
+                    # 補足済みなら普通に画像認識
+                    devices["servo"].set_angle(0)
+                    camera_order.value = self.result(show=show)
 
             except Exception as e:
                 self._logger.exception("An error occured in camera get_forever")
