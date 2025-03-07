@@ -96,6 +96,9 @@ def wait_phase(devices, data):
                 time.sleep(3)
                 # 少し待ってもまだ高度が高く，かつ高度が少しでも変化していたら，待機フェーズを終了
                 if 15 < data["alt"] and old_alt != data["alt"]:
+                    print("\n\n")
+                    logger.info("Ended wait phase")
+                    print("\n\n")
                     break
         except Exception as e:
             logger.exception(f"An error occured in wait phase:{e}")
@@ -129,6 +132,9 @@ def fall_phase(devices, data):
                     devices["pi"].write(NICR_PIN, 0)  # NiCr OFF
                     logger.info("nicr turned off")
                     devices["speaker"].audio_play("His_neme_Stanley.wav")
+                    print("\n\n")
+                    logger.info("Ended fall phase")
+                    print("\n\n")
                     break
         except Exception as e:
             logger.exception(f"An error occured in fall phase: {e}")
@@ -169,6 +175,9 @@ def long_phase(devices, data):
             
             # ゴールに近づいたら近距離フェーズへ
             if data["goal_distance"] < 5:
+                print("\n\n")
+                logger.info("Ended long phase")
+                print("\n\n")
                 break
         except Exception as e:
             logger.exception(f"An error occured in long phase approaching: {e}")
@@ -204,6 +213,9 @@ def short_phase(devices, data, camera_order):
                 devices["motor"].leftcurve()
             elif camera_order.value == 4:
                 # コーンが十分に大きく見えるとき，ゴールフェーズへ
+                print("\n\n")
+                logger.info("Ended short phase")
+                print("\n\n")
                 break
         except Exception as e:
             logger.exception(f"An error occured in short phase moving: {e}")
