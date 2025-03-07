@@ -38,7 +38,7 @@ class Camera:
     def yolo_detect(self, frame):
         """YOLOによる画像認識でカラーコーンを探す"""
         try:
-            yolo_xylist = 0
+            yolo_xylist = None
             center_x = 0
             
             # YOLOv10nモデルをロード
@@ -152,7 +152,7 @@ class Camera:
         0:不明, 1:直進, 2:右へ, 3:左へ, 4:コーンが近い(ゴール)
         """
         try:
-            yolo_xylist = 0
+            yolo_xylist = None
             frame_center_x = frame.shape[1] // 2
 
             try:
@@ -216,7 +216,7 @@ class Camera:
                 self._logger.info("Colorcone is None")
                 camera_order = 0
             
-            if yolo_xylist != 0:
+            if yolo_xylist is not None:
                 # Bounding Box描画
                 cv2.rectangle(frame, (int(yolo_xylist[0]), int(yolo_xylist[1])), (int(yolo_xylist[2]), int(yolo_xylist[3])), (255, 0, 0), 2)
                 cv2.putText(frame, str(yolo_xylist[4]), (int(yolo_xylist[0]), int(yolo_xylist[1] - 10)), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 0, 0))
