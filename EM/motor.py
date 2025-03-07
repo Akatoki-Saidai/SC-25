@@ -212,14 +212,14 @@ class Motor(object):
     def leftcurve(self):
         # 左前に進む
         try:
-            self.Speedup(1, 0, 0.7, 0)
+            self.Speedup(1, 0, 0.6, 0)
         except Exception as e:
             self._logger.exception("An error occured in motor leftcurve")
 
     def rightcurve(self):
         # 右前に進む
         try:
-            self.Speedup(0.7, 0, 1, 0)
+            self.Speedup(0.6, 0, 1, 0)
         except Exception as e:
             self._logger.exception("An error occured in motor rightcurve")
 
