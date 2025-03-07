@@ -152,6 +152,7 @@ class Camera:
         0:不明, 1:直進, 2:右へ, 3:左へ, 4:コーンが近い(ゴール)
         """
         try:
+            yolo_xylist = 0
             frame_center_x = frame.shape[1] // 2
 
             try:
