@@ -289,6 +289,7 @@ class Camera:
     def get_forever(self, devices, camera_order, show=False):
         # 画像認識
         devices["servo"].set_angle(0)
+        time.sleep(0.15)
         camera_order.value = self.result(show=show)
 
         while True:
@@ -297,18 +298,21 @@ class Camera:
                 if camera_order.value == 0:
                     # 右を見る
                     devices["servo"].set_angle(-15)
+                    time.sleep(0.15)
                     servo_center = -85
                     camera_order.value = self.result(servo_center, show=show)
 
                 if camera_order.value == 0:
                     # 左を見る
                     devices["servo"].set_angle(15)
+                    time.sleep(0.15)
                     servo_center = 85
                     camera_order.value = self.result(servo_center, show=show)
 
                 else:
                     # 補足済みなら普通に画像認識
                     devices["servo"].set_angle(0)
+                    time.sleep(0.15)
                     camera_order.value = self.result(show=show)
 
             except Exception as e:

@@ -201,7 +201,7 @@ def short_phase(devices, data, camera_order):
                 devices["motor"].rightturn()
                 time.sleep(0.2)
                 devices["motor"].stop()
-                time.sleep(0.7)
+                time.sleep(0.8)
             elif camera_order.value == 1:
                 # コーンが正面にあったとき
                 devices["motor"].accel()
