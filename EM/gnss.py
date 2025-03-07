@@ -38,7 +38,10 @@ class GNSS:
                     lon = self._pygps.longitude[0]
                     date = self._pygps.date
                     timestamp = self._pygps.timestamp
-                    datetime_gnss = f"20{date[2]:02}-{date[1]:02}-{date[0]:02}T{timestamp[0]:02}:{timestamp[1]:02}:{timestamp[2]:05.2f}{self._pygps.localoffset:+02}:00"
+
+                    # UTCから日本時間に修正
+                    local_offset = 9
+                    datetime_gnss = f"20{date[2]:02}-{date[1]:02}-{date[0]:02}T{timestamp[0]:02}:{timestamp[1]:02}:{timestamp[2]:05.2f}{local_offset:+02}:00"
                     self._logger.debug(f"lat: {lat}, lon: {lon}, alt: {self._pygps.altitude}, speed: {self._pygps.speed}, gnss_datetime: {datetime_gnss}")
                     data["datetime_gnss"] = datetime_gnss
                     if lat and lon:
