@@ -59,7 +59,6 @@ class Camera:
 
 
             frame_center_x = frame.shape[1] // 2
-            csv.print('camera_frame_size_x', frame.shape[1])
 
             # 中心座標のx座標が画像の中心より大きいか小さいか判定
             if area > 7000:
