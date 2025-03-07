@@ -91,11 +91,11 @@ def wait_phase(devices, data):
         try:
             time.sleep(0.1)
             # 高度が十分高かったら
-            if 20 < data["alt"]:
+            if 2 < data["alt"]:
                 old_alt = data["alt"]
                 time.sleep(3)
                 # 少し待ってもまだ高度が高く，かつ高度が少しでも変化していたら，待機フェーズを終了
-                if 20 < data["alt"] and old_alt != data["alt"]:
+                if 2 < data["alt"] and old_alt != data["alt"]:
                     break
         except Exception as e:
             logger.exception(f"An error occured in wait phase:{e}")
