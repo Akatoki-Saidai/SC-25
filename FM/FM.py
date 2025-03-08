@@ -147,6 +147,8 @@ def long_phase(devices, data):
         shutil.copy("./phase_pic/camera_long.jpg", "./camera_long_temp.jpg")
         os.rename("./camera_long_temp.jpg", "camera.jpg")
         devices["speaker"].audio_play("starwars.wav")
+        long_start_time = time.time()
+
     except Exception as e:
         logger.exception(f"An error occured in Entering long phase: {e}")
 
@@ -173,6 +175,9 @@ def long_phase(devices, data):
             elif 180 <= data["goal_angle"] < 330:
                 devices["motor"].leftcurve()  # 左へ
             
+            # GPSタイムアウト
+            if time.time() - long_start_time > 360 and data["goal_angle"] is None:
+                break
             # ゴールに近づいたら近距離フェーズへ
             if data["goal_distance"] < 5:
                 print("\n\n")
@@ -255,8 +260,8 @@ if __name__ == "__main__":
         data = {"phase": None, "lat": None, "lon": None, "datetime_gnss": None, "alt": None, "temp": None, "press": None, "accel": [None, None, None], "line_accel": [None, None, None], "mag": [None, None, None], "gyro": [None, None, None], "grav": [None, None, None], "goal_distance": None, "goal_angle": None, "goal_lat": GOAL_LAT, "goal_lon": GOAL_LON}
 
         # 風で適当に取った位置の仮のGPS情報
-        data["lat"] = 30.374499
-        data["lon"] = 130.960034
+        # data["lat"] = 30.374499
+        # data["lon"] = 130.960034
 
         # 並行処理でBMP280による測定をし続け，dataに代入し続ける
         bmp_thread = Thread(target=devices["bmp"].get_forever, args=(data,))
