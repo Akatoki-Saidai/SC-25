@@ -235,61 +235,70 @@ def goal_phase(devices, data):
 
 
 if __name__ == "__main__":
-    # 使用するデバイス  変数の中身をこの後変更する
-    devices = {
-        "bmp": None,
-        "bno": None,
-        "gnss": None,
-        "motor": None,
-        "servo": None,
-        "pi": None,
-        "speaker":None
-    }
 
-    # 各デバイスのセットアップ  devicesの中に各デバイスのインスタンスを入れる
-    setup(devices)
+    try:
+        # 使用するデバイス  変数の中身をこの後変更する
+        devices = {
+            "bmp": None,
+            "bno": None,
+            "gnss": None,
+            "motor": None,
+            "servo": None,
+            "pi": None,
+            "speaker":None
+        }
 
-    # 取得したデータ  新たなデータを取得し次第，中身を更新する
-    data = {"phase": None, "lat": None, "lon": None, "datetime_gnss": None, "alt": None, "temp": None, "press": None, "accel": [None, None, None], "line_accel": [None, None, None], "mag": [None, None, None], "gyro": [None, None, None], "grav": [None, None, None], "goal_distance": None, "goal_angle": None, "goal_lat": GOAL_LAT, "goal_lon": GOAL_LON}
+        # 各デバイスのセットアップ  devicesの中に各デバイスのインスタンスを入れる
+        setup(devices)
 
-    # 並行処理でBMP280による測定をし続け，dataに代入し続ける
-    bmp_thread = Thread(target=devices["bmp"].get_forever, args=(data,))
-    bmp_thread.start()  # BMP280による測定をスタート
-    
-    # 並行処理でBNO055による測定をし続け，dataに代入し続ける
-    bno_thread = Thread(target=devices["bno"].get_forever, args=(data,))
-    bno_thread.start()  # BNO055による測定をスタート
+        # 取得したデータ  新たなデータを取得し次第，中身を更新する
+        data = {"phase": None, "lat": None, "lon": None, "datetime_gnss": None, "alt": None, "temp": None, "press": None, "accel": [None, None, None], "line_accel": [None, None, None], "mag": [None, None, None], "gyro": [None, None, None], "grav": [None, None, None], "goal_distance": None, "goal_angle": None, "goal_lat": GOAL_LAT, "goal_lon": GOAL_LON}
 
-    # 並行処理でGNSSによる測定をし続け，dataに代入し続ける
-    gnss_thread = Thread(target=devices["gnss"].get_forever, args=(data,))
-    gnss_thread.start()  # GNSSによる測定をスタート
+        # 風で適当に取った位置の仮のGPS情報
+        data["lat"] = 30.374499
+        data["lon"] = 130.960034
 
-    # GUI用のサーバーを起動
-    server_thread = Thread(target=start_gui.start_server, kwargs={'logger': logger})
-    server_thread.start()
+        # 並行処理でBMP280による測定をし続け，dataに代入し続ける
+        bmp_thread = Thread(target=devices["bmp"].get_forever, args=(data,))
+        bmp_thread.start()  # BMP280による測定をスタート
+        
+        # 並行処理でBNO055による測定をし続け，dataに代入し続ける
+        bno_thread = Thread(target=devices["bno"].get_forever, args=(data,))
+        bno_thread.start()  # BNO055による測定をスタート
 
-    # 並列処理でGUIの表示データを更新
-    gui_thread = Thread(target=start_gui.write_to_gui, args=(devices, data,), kwargs={'logger': logger})
-    gui_thread.start()  # GUIの更新をスタート
+        # 並行処理でGNSSによる測定をし続け，dataに代入し続ける
+        gnss_thread = Thread(target=devices["gnss"].get_forever, args=(data,))
+        gnss_thread.start()  # GNSSによる測定をスタート
 
-    # 待機フェーズを実行
-    wait_phase(devices, data)
+        # GUI用のサーバーを起動
+        server_thread = Thread(target=start_gui.start_server, kwargs={'logger': logger})
+        server_thread.start()
 
-    # 落下フェーズを実行
-    fall_phase(devices, data)
+        # 並列処理でGUIの表示データを更新
+        gui_thread = Thread(target=start_gui.write_to_gui, args=(devices, data,), kwargs={'logger': logger})
+        gui_thread.start()  # GUIの更新をスタート
 
-    # 遠距離フェーズを実行
-    long_phase(devices, data)
+        # 待機フェーズを実行
+        wait_phase(devices, data)
 
-    # 並列処理でカメラをセットアップして撮影開始（並行処理ではない）
-    # 画像認識の結果を camera_order.value ，colorcone_xに代入し続ける
-    # 別のプロセスとデータをやり取りするcamera_oederとcolorcone_xは特殊な扱い
-    camera_order = Value('i', 0)
-    camera_process = Process(target=camera_setup_and_start, args=(camera_order, True))
-    camera_process.start()  # 画像認識スタート
+        # 落下フェーズを実行
+        fall_phase(devices, data)
 
-    # 短距離フェーズを実行
-    short_phase(devices, data, camera_order)
+        # 遠距離フェーズを実行
+        long_phase(devices, data)
 
-    # ゴールフェーズを実行
-    goal_phase(devices, data)
+        # 並列処理でカメラをセットアップして撮影開始（並行処理ではない）
+        # 画像認識の結果を camera_order.value ，colorcone_xに代入し続ける
+        # 別のプロセスとデータをやり取りするcamera_oederとcolorcone_xは特殊な扱い
+        camera_order = Value('i', 0)
+        camera_process = Process(target=camera_setup_and_start, args=(camera_order, True))
+        camera_process.start()  # 画像認識スタート
+
+        # 短距離フェーズを実行
+        short_phase(devices, data, camera_order)
+
+        # ゴールフェーズを実行
+        goal_phase(devices, data)
+
+    except Exception as e:
+        logger.exception("An unexpected error occured")
